@@ -1,0 +1,212 @@
+{
+  "_editor": true,
+  "fields": {
+    "hero.title": "Powering the Future of",
+    "hero.titleHighlight": "Energy &amp; Infrastructure",
+    "hero.subtitle": "\n        Delivering integrated petroleum and electrical solutions across MENA with world-class equipment, engineering\n        excellence, and comprehensive field services.\n      ",
+    "hero.stat1Value": "35+",
+    "hero.stat1Label": "Years",
+    "hero.stat2Value": "500+",
+    "hero.stat2Label": "Projects\n          ",
+    "hero.stat3Value": "15+",
+    "hero.stat3Label": "Countries\n          ",
+    "about.label": "Who We Are",
+    "about.title": "\n            Engineering <span>Excellence</span> for a Sustainable Future\n          ",
+    "about.text": "\n            Elsewedy SEDCO is a leading provider of integrated services in the petroleum and electrical sectors,\n            delivering cutting-edge solutions to clients across the MENA region and beyond.\n          ",
+    "about.card1Title": "Certified Quality",
+    "about.card1Text": "ISO 9001, 14001, and 45001 certified operations ensuring the highest standards.",
+    "about.card2Title": "Global Reach",
+    "about.card2Text": "Operations spanning 15+ countries with localized expertise and global standards.",
+    "about.card3Title": "Expert Team",
+    "about.card3Text": "Over 2,000 skilled professionals delivering excellence across every project.",
+    "categories.sectionLabel": "Our Expertise",
+    "categories.sectionTitle": "Comprehensive Service\n          Categories",
+    "categories.sectionSubtitle": "From petroleum services to\n          electrical infrastructure, we deliver end-to-end solutions for the energy industry.",
+    "cat.cat0.title": "Petroleum Services",
+    "cat.cat0.desc": "Complete upstream and downstream petroleum solutions including drilling, well completion, and production optimization.",
+    "cat.cat1.title": "Electrical Systems",
+    "cat.cat1.desc": "Design, installation, and maintenance of electrical infrastructure for industrial and commercial applications.",
+    "cat.cat2.title": "Instrumentation &amp; Control",
+    "cat.cat2.desc": "Advanced automation and control systems for process optimization and operational efficiency.",
+    "cat.cat3.title": "Mechanical Services",
+    "cat.cat3.desc": "Comprehensive mechanical engineering services including fabrication, installation, and maintenance.",
+    "cat.cat4.title": "Civil Construction",
+    "cat.cat4.desc": "Full-scale civil engineering and construction services for energy infrastructure projects.",
+    "cat.cat5.title": "Renewable Energy",
+    "cat.cat5.desc": "Solar, wind, and sustainable energy solutions supporting the global energy transition.",
+    "footer.ctaTitle": "Ready to\n          <span>Transform</span> Your Operations?\n        ",
+    "footer.ctaText": "Partner with us for innovative\n          petroleum and electrical solutions that drive efficiency, safety, and sustainable growth.",
+    "footer.brandText": "Leading\n            provider of integrated petroleum and electrical services across the MENA region.",
+    "footer.servicesHeading": "Services",
+    "footer.companyHeading": "Company",
+    "footer.contactHeading": "Contact",
+    "footer.address": "Cairo, Egypt",
+    "footer.phone": "+20 2 2345 6789",
+    "footer.email": "info@elsewedysedco.com",
+    "footer.copyright": "© 2024 Elsewedy SEDCO. All rights\n          reserved."
+  },
+  "buttons": {
+    "nav.cta": {
+      "text": "Contact\n          Us",
+      "bg": "",
+      "color": "",
+      "_iconFirst": false
+    },
+    "mob.nav.cta": {
+      "text": "Contact Us",
+      "bg": "",
+      "color": "",
+      "_iconFirst": false
+    },
+    "hero.btnExplore": {
+      "text": "Explore Solutions",
+      "bg": "",
+      "color": "",
+      "_iconFirst": false
+    },
+    "hero.btnLearn": {
+      "text": "Learn More",
+      "bg": "",
+      "color": "",
+      "_iconFirst": false
+    },
+    "about.ctaBtn": {
+      "text": "Discover Our Story",
+      "bg": "",
+      "color": "",
+      "_iconFirst": false
+    },
+    "footer.ctaBtn1": {
+      "text": "Get Started",
+      "bg": "",
+      "color": "",
+      "_iconFirst": false
+    },
+    "footer.ctaBtn2": {
+      "text": "View Solutions",
+      "bg": "",
+      "color": "",
+      "_iconFirst": false
+    }
+  },
+  "links": {
+    "nav.home": {
+      "text": "Home",
+      "href": "index.html"
+    },
+    "nav.about": {
+      "text": "About",
+      "href": "about.html"
+    },
+    "nav.solutions": {
+      "text": "Solutions",
+      "href": "solutions.html"
+    },
+    "nav.marketplace": {
+      "text": "Marketplace",
+      "href": "marketplace.html"
+    },
+    "mob.nav.home": {
+      "text": "Home",
+      "href": "index.html"
+    },
+    "mob.nav.about": {
+      "text": "About",
+      "href": "about.html"
+    },
+    "mob.nav.solutions": {
+      "text": "Solutions",
+      "href": "solutions.html"
+    },
+    "mob.nav.marketplace": {
+      "text": "Marketplace",
+      "href": "marketplace.html"
+    },
+    "footer.link1": {
+      "text": "Petroleum\n                Services",
+      "href": "solutions.html"
+    },
+    "footer.link2": {
+      "text": "Electrical\n                Systems",
+      "href": "solutions.html"
+    },
+    "footer.link3": {
+      "text": "Instrumentation",
+      "href": "solutions.html"
+    },
+    "footer.link4": {
+      "text": "Marketplace",
+      "href": "marketplace.html"
+    },
+    "footer.link5": {
+      "text": "About Us",
+      "href": "about.html"
+    },
+    "footer.link6": {
+      "text": "Contact",
+      "href": "contact.html"
+    },
+    "footer.privacy": {
+      "text": "Privacy Policy",
+      "href": "#"
+    },
+    "footer.terms": {
+      "text": "Terms of Service",
+      "href": "#"
+    }
+  },
+  "images": {},
+  "icons": {},
+  "styles": {},
+  "cards": [
+    {
+      "id": "cat0",
+      "num": "01",
+      "title": "Petroleum Services",
+      "desc": "Complete upstream and downstream petroleum solutions including drilling, well completion, and production optimization.",
+      "img": "assets/images/solution-turnkey.png",
+      "icon": "oil-can"
+    },
+    {
+      "id": "cat1",
+      "num": "02",
+      "title": "Electrical Systems",
+      "desc": "Design, installation, and maintenance of electrical infrastructure for industrial and commercial applications.",
+      "img": "assets/images/cable-tray.png",
+      "icon": "zap"
+    },
+    {
+      "id": "cat2",
+      "num": "03",
+      "title": "Instrumentation & Control",
+      "desc": "Advanced automation and control systems for process optimization and operational efficiency.",
+      "img": "assets/images/solution-consultation.png",
+      "icon": "cpu"
+    },
+    {
+      "id": "cat3",
+      "num": "04",
+      "title": "Mechanical Services",
+      "desc": "Comprehensive mechanical engineering services including fabrication, installation, and maintenance.",
+      "img": "assets/images/explosion-proof.png",
+      "icon": "settings"
+    },
+    {
+      "id": "cat4",
+      "num": "05",
+      "title": "Civil Construction",
+      "desc": "Full-scale civil engineering and construction services for energy infrastructure projects.",
+      "img": "assets/images/solution-compliance.png",
+      "icon": "building"
+    },
+    {
+      "id": "cat5",
+      "num": "06",
+      "title": "Renewable Energy",
+      "desc": "Solar, wind, and sustainable energy solutions supporting the global energy transition.",
+      "img": "assets/images/solar-energy.png",
+      "icon": "leaf"
+    }
+  ],
+  "lastSaved": "2026-05-31T22:53:52.941Z"
+}

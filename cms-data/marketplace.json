@@ -1,0 +1,131 @@
+{
+  "_editor": true,
+  "fields": {
+    "marketplace.hero.label": "Equipment &amp; Products",
+    "marketplace.hero.title": "Industrial ",
+    "marketplace.hero.titleHighlight": "Marketplace",
+    "marketplace.hero.subtitle": "Premium equipment, tools, and components for petroleum and electrical operations.",
+    "cat.mp0.tag": "Petroleum",
+    "cat.mp0.title": "Wellhead Assembly",
+    "cat.mp0.desc": "API 6A certified, pressure ratings up to 15,000 PSI",
+    "marketplace.footer.info1": "All products include warranty and technical support",
+    "marketplace.footer.info2": "Delivery across MENA region",
+    "marketplace.footer.info3": "Quality certified equipment",
+    "footer.ctaTitle": "Ready to\n          <span>Transform</span> Your Operations?\n        ",
+    "footer.ctaText": "Partner with us for innovative\n          petroleum and electrical solutions that drive efficiency, safety, and sustainable growth.",
+    "footer.brandText": "Leading\n            provider of integrated petroleum and electrical services across the MENA region.",
+    "footer.servicesHeading": "Services",
+    "footer.companyHeading": "Company",
+    "footer.contactHeading": "Contact",
+    "footer.address": "Cairo, Egypt",
+    "footer.phone": "+20 2 2345 6789",
+    "footer.email": "info@elsewedysedco.com",
+    "footer.copyright": "© 2024 Elsewedy SEDCO. All rights reserved."
+  },
+  "buttons": {
+    "nav.cta": {
+      "text": "Contact Us",
+      "bg": "",
+      "color": "",
+      "_iconFirst": false
+    },
+    "mob.nav.cta": {
+      "text": "Contact Us",
+      "bg": "",
+      "color": "",
+      "_iconFirst": false
+    },
+    "footer.ctaBtn1": {
+      "text": "Get Started",
+      "bg": "",
+      "color": "",
+      "_iconFirst": false
+    },
+    "footer.ctaBtn2": {
+      "text": "View Solutions",
+      "bg": "",
+      "color": "",
+      "_iconFirst": false
+    }
+  },
+  "links": {
+    "nav.home": {
+      "text": "Home",
+      "href": "index_for_edit.html"
+    },
+    "nav.about": {
+      "text": "About",
+      "href": "about_for_edit.html"
+    },
+    "nav.solutions": {
+      "text": "Solutions",
+      "href": "solutions_for_edit.html"
+    },
+    "nav.marketplace": {
+      "text": "Marketplace",
+      "href": "marketplace_for_edit.html"
+    },
+    "mob.nav.home": {
+      "text": "Home",
+      "href": "index_for_edit.html"
+    },
+    "mob.nav.about": {
+      "text": "About",
+      "href": "about_for_edit.html"
+    },
+    "mob.nav.solutions": {
+      "text": "Solutions",
+      "href": "solutions_for_edit.html"
+    },
+    "mob.nav.marketplace": {
+      "text": "Marketplace",
+      "href": "marketplace_for_edit.html"
+    },
+    "footer.link1": {
+      "text": "Petroleum Services",
+      "href": "solutions_for_edit.html"
+    },
+    "footer.link2": {
+      "text": "Electrical Systems",
+      "href": "solutions_for_edit.html"
+    },
+    "footer.link3": {
+      "text": "Instrumentation",
+      "href": "solutions_for_edit.html"
+    },
+    "footer.link4": {
+      "text": "Marketplace",
+      "href": "marketplace_for_edit.html"
+    },
+    "footer.link5": {
+      "text": "About Us",
+      "href": "about_for_edit.html"
+    },
+    "footer.link6": {
+      "text": "Contact",
+      "href": "contact_for_edit.html"
+    },
+    "footer.privacy": {
+      "text": "Privacy Policy",
+      "href": "#"
+    },
+    "footer.terms": {
+      "text": "Terms of Service",
+      "href": "#"
+    }
+  },
+  "images": {},
+  "icons": {},
+  "styles": {},
+  "cards": [
+    {
+      "id": "mp0",
+      "num": "01",
+      "title": "Wellhead Assembly",
+      "desc": "API 6A certified, pressure ratings up to 15,000 PSI",
+      "img": "assets/images/product-explosion-proof.png",
+      "tag": "Petroleum"
+    }
+  ],
+  "lastSaved": "2026-05-31T21:27:33.434Z"
+}

@@ -1,0 +1,220 @@
+footer.site-footer {
+  position: relative;
+  background-color: var(--brand-darker);
+  color: white;
+  overflow: hidden;
+}
+
+.footer-accent-top {
+  height: 2px;
+  background: linear-gradient(to right, transparent, #8B1A1A, transparent);
+}
+
+.footer-cta {
+  text-align: center;
+  margin-bottom: 56px;
+}
+
+.footer-cta h2 {
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 16px;
+}
+
+.footer-cta h2 span {
+  color: var(--brand-red-light);
+}
+
+.footer-cta p {
+  max-width: 512px;
+  margin: 0 auto 24px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.footer-cta-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .footer-cta-buttons {
+    flex-direction: row;
+  }
+}
+
+.footer-divider {
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.1);
+  margin-bottom: 40px;
+}
+
+.footer-grid {
+  display: grid;
+  gap: 32px;
+}
+
+@media (min-width: 640px) {
+  .footer-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .footer-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.footer-brand p {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.footer-brand .logo-bg {
+  display: inline-block;
+  background-color: white;
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin-bottom: 16px;
+}
+
+.footer-brand .logo-bg img {
+  height: 28px;
+  width: auto;
+  display: block;
+}
+
+.footer-section h4 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  letter-spacing: 0.1em;
+  margin-bottom: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.footer-section ul {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.footer-section ul a {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.875rem;
+  transition: color 0.3s ease;
+}
+
+.footer-section ul a:hover {
+  color: var(--brand-red-light);
+}
+
+.footer-contact li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.875rem;
+}
+
+.footer-contact li i {
+  color: var(--brand-red);
+  margin-top: 2px;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  font-size: 14px;
+}
+
+.footer-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  gap: 16px;
+}
+
+@media (min-width: 640px) {
+  .footer-bottom {
+    flex-direction: row;
+  }
+}
+
+.footer-bottom p {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 12px;
+}
+
+.footer-bottom-links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.footer-bottom-links a {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 12px;
+  transition: color 0.3s ease;
+}
+
+.footer-bottom-links a:hover {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Premium Footer Animations from Copy Design */
+.footer-brand .logo-bg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  padding: 12px;
+  margin-bottom: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.5s ease-out;
+  overflow: hidden;
+}
+
+.footer-brand a:hover .logo-bg {
+  transform: scale(1.05);
+}
+
+.footer-brand .logo-bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.footer-section ul a {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.footer-section ul a:hover {
+  color: var(--brand-red-light);
+  padding-left: 4px;
+}
+
+.btn-primary.footer-btn {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+}
+
+.btn-primary.footer-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 25px -5px rgba(139, 26, 26, 0.3), 0 10px 10px -5px rgba(139, 26, 26, 0.1);
+}
