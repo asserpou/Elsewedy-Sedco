@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visual Editor — Contact — Elsewedy SEDCO</title>
+  <meta name="description" content="WYSIWYG visual editor for the Elsewedy SEDCO Contact page." />
+  <link rel="icon" type="image/png" href="assets/Logo.png" />
+
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/navbar.css" />
+  <link rel="stylesheet" href="css/footer.css" />
+  <link rel="stylesheet" href="css/contact.css" />
+  <link rel="stylesheet" href="css/cms-editor.css" />
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body class="edit-mode">
+
+  <!-- ═══════ EDIT MODE BADGE ═══════ -->
+  <div class="edit-mode-badge"><div class="pulse-dot"></div>Edit Mode — Contact</div>
+
+  <!-- ═══════ EDITOR TOOLBAR ═══════ -->
+  <div id="editor-toolbar">
+    <div class="etb-logo"><div class="etb-logo-icon">S</div><span>Editor</span></div>
+    <button class="etb-btn" id="btn-preview" title="Preview the live site">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+      <span class="btn-label">Preview</span>
+    </button>
+    <div class="etb-divider"></div>
+    <button class="etb-btn style-btn" id="btn-style-panel" title="Open Style Panel">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" /></svg>
+      <span class="btn-label">Styles</span>
+    </button>
+    <div class="etb-divider"></div>
+    <button class="etb-btn save-btn" id="btn-save" title="Save all changes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" /></svg>
+      <span class="btn-label">Save Changes</span>
+    </button>
+    <button class="etb-btn reset-btn" id="btn-reset" title="Reset to original content">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" /></svg>
+      <span class="btn-label">Reset</span>
+    </button>
+    <div class="etb-divider"></div>
+    <div class="etb-status"><div class="status-dot"></div><span id="save-status">Ready</span></div>
+  </div>
+
+  <div id="editor-hint">
+    <span><kbd>Dbl-click</kbd> edit text</span>
+    <span><kbd>Click</kbd> button/link to customize</span>
+    <span><kbd>Click</kbd> image to replace</span>
+    <span><kbd>Esc</kbd> finish editing</span>
+  </div>
+
+  <input type="file" id="cms-file-input" accept="image/*" />
+  <div id="cms-toast"></div>
+
+  <!-- Rich Text Toolbar -->
+  <div id="rich-toolbar">
+    <button class="rt-btn" data-cmd="bold" title="Bold"><b>B</b></button>
+    <button class="rt-btn" data-cmd="italic" title="Italic"><i>I</i></button>
+    <button class="rt-btn" data-cmd="underline" title="Underline"><u>U</u></button>
+    <button class="rt-btn" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
+    <div class="rt-sep"></div>
+    <select class="rt-size-select" id="rt-font-size" title="Font Size">
+      <option value="">Size</option><option value="1">10px</option><option value="2">13px</option><option value="3">16px</option><option value="4">18px</option><option value="5">24px</option><option value="6">32px</option><option value="7">48px</option>
+    </select>
+    <div class="rt-sep"></div>
+    <div class="rt-color-wrap" title="Text Color"><input type="color" id="rt-text-color" value="#ffffff" /><span class="rt-color-icon">A</span><div class="rt-color-bar" id="rt-color-bar" style="background:#ffffff"></div></div>
+    <div class="rt-color-wrap" title="Highlight Color"><input type="color" id="rt-bg-color" value="#ffff00" /><span class="rt-color-icon" style="background:rgba(255,255,0,0.3);border-radius:3px;padding:0 2px;">A</span><div class="rt-color-bar" style="background:#ffff00"></div></div>
+    <div class="rt-sep"></div>
+    <button class="rt-btn" data-cmd="removeFormat" title="Clear Formatting"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 10L3 10"/><path d="M21 6L3 6"/><path d="M21 14L3 14"/><path d="M17 18L3 18"/></svg></button>
+  </div>
+
+  <!-- Style Panel -->
+  <div id="style-panel">
+    <div class="sp-header"><h3>🎨 Style Customizer</h3><p>Edit colors &amp; font sizes.</p></div>
+    <div class="sp-section">
+      <div class="sp-section-title">Page Hero</div>
+      <div class="sp-row"><span class="sp-label">Subtitle Color</span><div class="sp-color-wrap"><div class="sp-color-swatch" style="background:#c0c0c8"><input type="color" value="#c0c0c8" data-token="--hero-subtitle-color" /></div><span class="sp-color-hex">#c0c0c8</span></div></div>
+    </div>
+    <div class="sp-section">
+      <div class="sp-section-title">Section Headings</div>
+      <div class="sp-row"><span class="sp-label">Heading Color</span><div class="sp-color-wrap"><div class="sp-color-swatch" style="background:#0f172a"><input type="color" value="#0f172a" data-token="--section-heading-color" /></div><span class="sp-color-hex">#0f172a</span></div></div>
+      <div class="sp-row"><span class="sp-label">Label / Accent</span><div class="sp-color-wrap"><div class="sp-color-swatch" style="background:#E32636"><input type="color" value="#E32636" data-token="--section-label-color" /></div><span class="sp-color-hex">#E32636</span></div></div>
+    </div>
+    <div class="sp-section">
+      <div class="sp-section-title">Navigation</div>
+      <div class="sp-row"><span class="sp-label">Link Color</span><div class="sp-color-wrap"><div class="sp-color-swatch" style="background:#cccccc"><input type="color" value="#cccccc" data-token="--nav-link-color" /></div><span class="sp-color-hex">#cccccc</span></div></div>
+    </div>
+    <div class="sp-section">
+      <div class="sp-section-title">Footer</div>
+      <div class="sp-row"><span class="sp-label">Heading Color</span><div class="sp-color-wrap"><div class="sp-color-swatch" style="background:#ffffff"><input type="color" value="#ffffff" data-token="--footer-heading-color" /></div><span class="sp-color-hex">#ffffff</span></div></div>
+      <div class="sp-row"><span class="sp-label">Body Text</span><div class="sp-color-wrap"><div class="sp-color-swatch" style="background:#888899"><input type="color" value="#888899" data-token="--footer-text-color" /></div><span class="sp-color-hex">#888899</span></div></div>
+      <div class="sp-row"><span class="sp-label">Link Color</span><div class="sp-color-wrap"><div class="sp-color-swatch" style="background:#888899"><input type="color" value="#888899" data-token="--footer-link-color" /></div><span class="sp-color-hex">#888899</span></div></div>
+    </div>
+    <div class="sp-section">
+      <div class="sp-section-title">Button Colors (Individual)</div>
+      <div class="sp-row"><span class="sp-label">Nav CTA BG</span><div class="sp-color-wrap"><div class="sp-color-swatch" style="background:#E32636"><input type="color" value="#E32636" data-token="--btn-nav-cta-bg" /></div><span class="sp-color-hex">#E32636</span></div></div>
+      <div class="sp-row"><span class="sp-label">Nav CTA Text</span><div class="sp-color-wrap"><div class="sp-color-swatch" style="background:#ffffff"><input type="color" value="#ffffff" data-token="--btn-nav-cta-text" /></div><span class="sp-color-hex">#ffffff</span></div></div>
+      <div class="sp-row"><span class="sp-label">Submit BG</span><div class="sp-color-wrap"><div class="sp-color-swatch" style="background:#E32636"><input type="color" value="#E32636" data-token="--btn-submit-bg" /></div><span class="sp-color-hex">#E32636</span></div></div>
+      <div class="sp-row"><span class="sp-label">Submit Text</span><div class="sp-color-wrap"><div class="sp-color-swatch" style="background:#ffffff"><input type="color" value="#ffffff" data-token="--btn-submit-text" /></div><span class="sp-color-hex">#ffffff</span></div></div>
+      <div class="sp-row"><span class="sp-label">Call Btn BG</span><div class="sp-color-wrap"><div class="sp-color-swatch" style="background:#ffffff"><input type="color" value="#ffffff" data-token="--btn-call-bg" /></div><span class="sp-color-hex">#ffffff</span></div></div>
+      <div class="sp-row"><span class="sp-label">Email Btn Text</span><div class="sp-color-wrap"><div class="sp-color-swatch" style="background:#ffffff"><input type="color" value="#ffffff" data-token="--btn-email-text" /></div><span class="sp-color-hex">#ffffff</span></div></div>
+      <div class="sp-row"><span class="sp-label">Footer Start BG</span><div class="sp-color-wrap"><div class="sp-color-swatch" style="background:#E32636"><input type="color" value="#E32636" data-token="--btn-footer-start-bg" /></div><span class="sp-color-hex">#E32636</span></div></div>
+    </div>
+  </div>
+
+  <!-- Popovers -->
+  <div id="btn-popover">
+    <button class="bpop-close" id="bpop-close-btn">×</button>
+    <div class="bpop-title">🎨 Edit Button</div>
+    <div class="bpop-row"><div class="bpop-label">Button Text</div><input type="text" class="bpop-input" id="bpop-text-input" placeholder="Button label…" /></div>
+    <div class="bpop-row"><div class="bpop-label">Colors</div><div class="bpop-colors"><div class="bpop-color-item"><div class="bpop-color-label">Background</div><div class="bpop-color-swatch" id="bpop-bg-swatch" style="background:#E32636"><input type="color" id="bpop-bg-color" value="#E32636" /></div></div><div class="bpop-color-item"><div class="bpop-color-label">Text</div><div class="bpop-color-swatch" id="bpop-text-swatch" style="background:#ffffff"><input type="color" id="bpop-text-color" value="#ffffff" /></div></div></div></div>
+    <button class="bpop-apply" id="bpop-apply-btn">Apply Changes</button>
+  </div>
+  <div id="link-popover">
+    <button class="bpop-close" id="lpop-close-btn">×</button>
+    <div class="bpop-title">🔗 Edit Link</div>
+    <div class="bpop-row"><div class="bpop-label">Link Text</div><input type="text" class="bpop-input" id="lpop-text-input" placeholder="Link label…" /></div>
+    <div class="bpop-row"><div class="bpop-label">URL / href</div><input type="text" class="bpop-input" id="lpop-href-input" placeholder="https://… or page.html" /></div>
+    <button class="bpop-apply" id="lpop-apply-btn">Apply Link</button>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════════════════════
+       CONTACT PAGE CONTENT
+       ════════════════════════════════════════════════════════════════ -->
+
+  <nav class="navbar">
+    <div class="section-container nav-inner">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-bg">
+          <img src="assets/Logo.gif" alt="Elsewedy SEDCO">
+        </div>
+      </a>
+      <div class="nav-links">
+        <a href="index_for_edit.html" data-cms-link="nav.home" data-cms-tooltip="Click to edit link">Home<span class="underline"></span></a>
+        <a href="about_for_edit.html" data-cms-link="nav.about" data-cms-tooltip="Click to edit link">About<span class="underline"></span></a>
+        <a href="solutions_for_edit.html" data-cms-link="nav.solutions" data-cms-tooltip="Click to edit link">Solutions<span class="underline"></span></a>
+        <a href="marketplace.html" data-cms-link="nav.marketplace" data-cms-tooltip="Click to edit link">Marketplace<span class="underline"></span></a>
+        <a href="contact_for_edit.html" class="nav-cta active" data-cms-btn="nav.cta" data-cms-tooltip="Click to edit button">Contact Us</a>
+      </div>
+      <button class="mobile-toggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+    </div>
+    <div class="mobile-menu section-container">
+      <a href="index_for_edit.html">Home</a><a href="about_for_edit.html">About</a><a href="solutions_for_edit.html">Solutions</a><a href="marketplace.html">Marketplace</a><a href="contact_for_edit.html" class="mobile-cta">Contact Us</a>
+    </div>
+  </nav>
+
+  <section class="page-hero">
+    <div class="hero-bg" data-cms-image="contact.heroBg" data-cms-tooltip="Click to replace">
+      <img src="assets/images/about-hero-bg.png" alt="Contact Us Background" style="width:100%;height:100%;object-fit:cover;">
+      <div class="overlay" style="position:absolute;inset:0;background:linear-gradient(135deg, rgba(15,15,15,0.85) 0%, rgba(26,26,26,0.75) 40%, rgba(31,16,16,0.85) 100%);"></div>
+      <div class="cms-img-overlay"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>Replace</span></div>
+    </div>
+    <div class="grid-pattern"></div>
+    <div class="accent-line-left"></div>
+    <div class="accent-line-right"></div>
+    <div class="radial-glow"></div>
+    <div class="bottom-fade"></div>
+    <div class="content">
+      <div class="section-label center light animate-in delay-1"><div class="line"></div><span data-cms-field="contact.heroLabel" data-cms-tooltip="Dbl-click to edit">Get In Touch</span></div>
+      <h1 class="animate-in delay-2" data-cms-field="contact.heroTitle" data-cms-tooltip="Dbl-click to edit">Let's Build <span class="gradient-text">Together</span></h1>
+      <p class="subtitle animate-in delay-3" data-cms-field="contact.heroSubtitle" data-cms-tooltip="Dbl-click to edit">Connect with our team to discuss your project requirements and discover how we can help.</p>
+    </div>
+  </section>
+
+  <section class="contact-section">
+    <div class="section-container">
+      <div class="contact-grid">
+        <div class="reveal">
+          <div class="section-label"><div class="line"></div><span data-cms-field="contact.infoLabel" data-cms-tooltip="Dbl-click to edit">Contact Information</span></div>
+          <h2 class="contact-title" data-cms-field="contact.infoTitle" data-cms-tooltip="Dbl-click to edit">Let's Start a <span>Conversation</span></h2>
+          <p class="contact-desc" data-cms-field="contact.infoDesc" data-cms-tooltip="Dbl-click to edit">Whether you need a quote, have a technical inquiry, or want to explore partnership opportunities, our team is ready to assist you.</p>
+
+          <div class="contact-cards">
+            <div class="contact-card">
+              <div class="icon-box"><i data-lucide="building-2" style="width:18px;height:18px;" data-cms-icon="contact.iconBuilding" data-cms-tooltip="Dbl-click to change icon"></i></div>
+              <div>
+                <div class="card-label" data-cms-field="contact.officeLabel" data-cms-tooltip="Dbl-click to edit">Head Office</div>
+                <div class="card-value" data-cms-field="contact.officeValue" data-cms-tooltip="Dbl-click to edit">Cairo, Egypt — New Cairo, 5th Settlement</div>
+              </div>
+            </div>
+            <div class="contact-card">
+              <div class="icon-box"><i data-lucide="phone" style="width:18px;height:18px;" data-cms-icon="contact.iconPhone" data-cms-tooltip="Dbl-click to change icon"></i></div>
+              <div>
+                <div class="card-label" data-cms-field="contact.phoneLabel" data-cms-tooltip="Dbl-click to edit">Phone</div>
+                <div class="card-value" data-cms-field="contact.phoneValue" data-cms-tooltip="Dbl-click to edit">+20 2 2345 6789</div>
+              </div>
+            </div>
+            <div class="contact-card">
+              <div class="icon-box"><i data-lucide="mail" style="width:18px;height:18px;" data-cms-icon="contact.iconMail" data-cms-tooltip="Dbl-click to change icon"></i></div>
+              <div>
+                <div class="card-label" data-cms-field="contact.emailLabel" data-cms-tooltip="Dbl-click to edit">Email</div>
+                <div class="card-value" data-cms-field="contact.emailValue" data-cms-tooltip="Dbl-click to edit">info@elsewedysedco.com</div>
+              </div>
+            </div>
+            <div class="contact-card">
+              <div class="icon-box"><i data-lucide="clock" style="width:18px;height:18px;" data-cms-icon="contact.iconClock" data-cms-tooltip="Dbl-click to change icon"></i></div>
+              <div>
+                <div class="card-label" data-cms-field="contact.hoursLabel" data-cms-tooltip="Dbl-click to edit">Working Hours</div>
+                <div class="card-value" data-cms-field="contact.hoursValue" data-cms-tooltip="Dbl-click to edit">Sun — Thu: 8:00 AM — 5:00 PM</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="map-container">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3454.123!2d31.4!3d30.05!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzDCsDAzJzAwLjAiTiAzMcKwMjQnMDAuMCJF!5e0!3m2!1sen!2seg!4v1700000000000" allowfullscreen="" loading="lazy"></iframe>
+            <div class="map-label">
+              <i data-lucide="map-pin" style="width:12px;height:12px;"></i>
+              <span data-cms-field="contact.mapLabel" data-cms-tooltip="Dbl-click to edit">New Cairo, 5th Settlement</span>
+            </div>
+          </div>
+
+          <div class="global-tag">
+            <i data-lucide="globe" style="width:14px;height:14px;"></i>
+            <span data-cms-field="contact.globalTag" data-cms-tooltip="Dbl-click to edit">Operations across 15+ countries in the MENA region</span>
+          </div>
+        </div>
+
+        <div class="form-wrapper reveal" data-delay="0.2">
+          <div class="top-accent"></div>
+          <h3 data-cms-field="contact.formTitle" data-cms-tooltip="Dbl-click to edit">Send Us a Message</h3>
+          <p class="form-desc" data-cms-field="contact.formDesc" data-cms-tooltip="Dbl-click to edit">Fill out the form below and our team will get back to you within 24 hours.</p>
+
+          <div class="success-msg">
+            <i data-lucide="check-circle" style="width:18px;height:18px;"></i>
+            <span>Your message has been sent successfully. We'll get back to you soon!</span>
+          </div>
+
+          <form id="contact-form">
+            <div class="form-row two-col">
+              <div class="form-group" style="margin-bottom:0;"><label>Full Name <span class="required">*</span></label><input type="text" name="name" placeholder="Your full name" required /></div>
+              <div class="form-group" style="margin-bottom:0;"><label>Email Address <span class="required">*</span></label><input type="email" name="email" placeholder="your.email@company.com" required /></div>
+            </div>
+            <div class="form-row two-col">
+              <div class="form-group" style="margin-bottom:0;"><label>Company</label><input type="text" name="company" placeholder="Your company name" /></div>
+              <div class="form-group" style="margin-bottom:0;"><label>Phone Number</label><input type="tel" name="phone" placeholder="+20 xxx xxx xxxx" /></div>
+            </div>
+            <div class="form-group"><label>Subject <span class="required">*</span></label><input type="text" name="subject" placeholder="How can we help?" required /></div>
+            <div class="form-group"><label>Message <span class="required">*</span></label><textarea name="message" rows="5" placeholder="Tell us about your project or inquiry..." required></textarea></div>
+            <button type="submit" id="submitBtn" class="submit-btn" data-cms-btn="contact.submitBtn" data-cms-tooltip="Click to edit button">
+              <span id="submitBtnText">Send Message</span> <i data-lucide="send" style="width:16px;height:16px;"></i>
+            </button>
+            <p class="form-note" data-cms-field="contact.formNote" data-cms-tooltip="Dbl-click to edit">We typically respond within 24 business hours.</p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="urgent-strip">
+    <div class="glow"></div>
+    <div class="section-container">
+      <div class="urgent-content">
+        <div>
+          <h3 data-cms-field="contact.urgentTitle" data-cms-tooltip="Dbl-click to edit">Need Immediate Assistance?</h3>
+          <p data-cms-field="contact.urgentDesc" data-cms-tooltip="Dbl-click to edit">For urgent inquiries, reach our operations team directly.</p>
+        </div>
+        <div class="urgent-buttons">
+          <a href="tel:+20223456789" class="btn-call" data-cms-btn="contact.callBtn" data-cms-tooltip="Click to edit button">
+            <i data-lucide="phone" style="width:16px;height:16px;"></i> Call Now
+          </a>
+          <a href="mailto:info@elsewedysedco.com" class="btn-email" data-cms-btn="contact.emailBtn" data-cms-tooltip="Click to edit button">
+            <i data-lucide="mail" style="width:16px;height:16px;"></i> Email Us
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="footer-accent-top"></div>
+    <div class="section-container" style="padding-top:64px;padding-bottom:48px;">
+      <div class="footer-cta reveal">
+        <h2 data-cms-field="footer.ctaTitle" data-cms-tooltip="Dbl-click to edit">Ready to <span>Transform</span> Your Operations?</h2>
+        <p data-cms-field="footer.ctaDesc" data-cms-tooltip="Dbl-click to edit">Partner with us for innovative petroleum and electrical solutions that drive efficiency, safety, and sustainable growth.</p>
+        <div class="footer-cta-buttons">
+          <a href="contact.html" class="btn-primary footer-btn" data-cms-btn="footer.ctaBtn1" data-cms-tooltip="Click to edit button">Get Started <i data-lucide="arrow-right" style="width:16px;height:16px;"></i></a>
+          <a href="solutions.html" class="btn-outline" data-cms-btn="footer.ctaBtn2" data-cms-tooltip="Click to edit button" style="border-color:rgba(255,255,255,0.15);">View Solutions</a>
+        </div>
+      </div>
+      <div class="footer-divider" style="margin-top:48px;"></div>
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="index.html" class="nav-logo" style="display:inline-block; text-decoration:none;">
+            <div class="logo-bg">
+              <img src="assets/Logo.gif" alt="Elsewedy SEDCO">
+            </div>
+          </a>
+          <p style="margin-top:12px;" data-cms-field="footer.brandText" data-cms-tooltip="Dbl-click to edit">Leading provider of integrated petroleum and electrical services across the MENA region.</p>
+        </div>
+        <div class="footer-section"><h4 data-cms-field="footer.servicesHeading" data-cms-tooltip="Dbl-click to edit">Services</h4><ul><li><a href="solutions.html" data-cms-link="footer.link1" data-cms-tooltip="Click to edit link">Petroleum Services</a></li><li><a href="solutions.html" data-cms-link="footer.link2" data-cms-tooltip="Click to edit link">Electrical Systems</a></li><li><a href="solutions.html" data-cms-link="footer.link3" data-cms-tooltip="Click to edit link">Instrumentation</a></li><li><a href="marketplace.html" data-cms-link="footer.link4" data-cms-tooltip="Click to edit link">Marketplace</a></li></ul></div>
+        <div class="footer-section"><h4 data-cms-field="footer.companyHeading" data-cms-tooltip="Dbl-click to edit">Company</h4><ul><li><a href="about.html" data-cms-link="footer.link5" data-cms-tooltip="Click to edit link">About Us</a></li><li><a href="contact.html" data-cms-link="footer.link6" data-cms-tooltip="Click to edit link">Contact</a></li></ul></div>
+        <div class="footer-section footer-contact"><h4 data-cms-field="footer.contactHeading" data-cms-tooltip="Dbl-click to edit">Contact</h4><ul><li><i data-lucide="map-pin" style="width:16px;height:16px;" data-cms-icon="footer.iconMapPin" data-cms-tooltip="Dbl-click to change icon"></i><span data-cms-field="footer.address" data-cms-tooltip="Dbl-click to edit">Cairo, Egypt</span></li><li><i data-lucide="phone" style="width:16px;height:16px;" data-cms-icon="footer.iconPhone" data-cms-tooltip="Dbl-click to change icon"></i><span data-cms-field="footer.phone" data-cms-tooltip="Dbl-click to edit">+20 2 2345 6789</span></li><li><i data-lucide="mail" style="width:16px;height:16px;" data-cms-icon="footer.iconMail" data-cms-tooltip="Dbl-click to change icon"></i><span data-cms-field="footer.email" data-cms-tooltip="Dbl-click to edit">info@elsewedysedco.com</span></li></ul></div>
+      </div>
+      <div class="footer-bottom">
+        <p data-cms-field="footer.copyright" data-cms-tooltip="Dbl-click to edit">© 2024 Elsewedy SEDCO. All rights reserved.</p>
+        <div class="footer-bottom-links">
+          <a href="#" data-cms-link="footer.privacy" data-cms-tooltip="Click to edit link">Privacy Policy</a>
+          <a href="#" data-cms-link="footer.terms" data-cms-tooltip="Click to edit link">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/navbar.js?v=1.1.0"></script>
+  <script src="js/animations.js"></script>
+  <script src="js/contact.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', function() { lucide.createIcons(); });</script>
+
+  <script>
+    window.CMS_PAGE_KEY = 'contact';
+    window.CMS_PREVIEW_PAGE = 'contact.html';
+    window.CMS_DEFAULT_CARDS = [];
+  </script>
+  <script src="js/cms-editor.js?v=1.3.0"></script>
+  <script src="js/auth-session.js"></script>
+</body>
+</html>

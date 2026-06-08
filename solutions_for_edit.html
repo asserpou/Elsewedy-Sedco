@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visual Editor — Solutions — Elsewedy SEDCO</title>
+  <meta name="description" content="WYSIWYG visual editor for the Elsewedy SEDCO Solutions page." />
+  <link rel="icon" type="image/png" href="assets/Logo.png" />
+
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/navbar.css" />
+  <link rel="stylesheet" href="css/footer.css" />
+  <link rel="stylesheet" href="css/solutions.css" />
+  <link rel="stylesheet" href="css/cms-editor.css" />
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body class="edit-mode">
+
+  <!-- ═══════ EDIT MODE BADGE ═══════ -->
+  <div class="edit-mode-badge"><div class="pulse-dot"></div>Edit Mode — Solutions</div>
+
+  <!-- ═══════ EDITOR TOOLBAR ═══════ -->
+  <div id="editor-toolbar">
+    <div class="etb-logo"><div class="etb-logo-icon">S</div><span>Editor</span></div>
+    <button class="etb-btn" id="btn-preview" title="Preview the live site">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+      <span class="btn-label">Preview</span>
+    </button>
+    <div class="etb-divider"></div>
+    <button class="etb-btn style-btn" id="btn-style-panel" title="Open Style Panel">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" /></svg>
+      <span class="btn-label">Styles</span>
+    </button>
+    <div class="etb-divider"></div>
+    <button class="etb-btn save-btn" id="btn-save" title="Save all changes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" /></svg>
+      <span class="btn-label">Save Changes</span>
+    </button>
+    <button class="etb-btn reset-btn" id="btn-reset" title="Reset to original content">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" /></svg>
+      <span class="btn-label">Reset</span>
+    </button>
+    <div class="etb-divider"></div>
+    <div class="etb-status"><div class="status-dot"></div><span id="save-status">Ready</span></div>
+  </div>
+
+  <div id="editor-hint">
+    <span><kbd>Dbl-click</kbd> edit text</span>
+    <span><kbd>Click</kbd> button/link to customize</span>
+    <span><kbd>Click</kbd> image to replace</span>
+    <span><kbd>Esc</kbd> finish editing</span>
+  </div>
+
+  <input type="file" id="cms-file-input" accept="image/*" />
+  <div id="cms-toast"></div>
+
+  <!-- Rich Text Toolbar -->
+  <div id="rich-toolbar">
+    <button class="rt-btn" data-cmd="bold" title="Bold"><b>B</b></button>
+    <button class="rt-btn" data-cmd="italic" title="Italic"><i>I</i></button>
+    <button class="rt-btn" data-cmd="underline" title="Underline"><u>U</u></button>
+    <button class="rt-btn" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
+    <div class="rt-sep"></div>
+    <select class="rt-size-select" id="rt-font-size" title="Font Size">
+      <option value="">Size</option><option value="1">10px</option><option value="2">13px</option><option value="3">16px</option><option value="4">18px</option><option value="5">24px</option><option value="6">32px</option><option value="7">48px</option>
+    </select>
+    <div class="rt-sep"></div>
+    <div class="rt-color-wrap" title="Text Color"><input type="color" id="rt-text-color" value="#ffffff" /><span class="rt-color-icon">A</span><div class="rt-color-bar" id="rt-color-bar" style="background:#ffffff"></div></div>
+    <div class="rt-color-wrap" title="Highlight Color"><input type="color" id="rt-bg-color" value="#ffff00" /><span class="rt-color-icon" style="background:rgba(255,255,0,0.3);border-radius:3px;padding:0 2px;">A</span><div class="rt-color-bar" style="background:#ffff00"></div></div>
+    <div class="rt-sep"></div>
+    <button class="rt-btn" data-cmd="removeFormat" title="Clear Formatting"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 10L3 10"/><path d="M21 6L3 6"/><path d="M21 14L3 14"/><path d="M17 18L3 18"/></svg></button>
+  </div>
+
+
+  <!-- Style Panel -->
+  <div id="style-panel">
+    <div class="sp-header"><h3>🎨 Style Customizer</h3><p>Edit colors &amp; font sizes.</p></div>
+    <div class="sp-section">
+      <div class="sp-section-title">Section Headings</div>
+      <div class="sp-row"><span class="sp-label">Heading Color</span><div class="sp-color-wrap"><div class="sp-color-swatch" style="background:#0f172a"><input type="color" value="#0f172a" data-token="--section-heading-color" /></div><span class="sp-color-hex">#0f172a</span></div></div>
+      <div class="sp-row"><span class="sp-label">Label / Accent</span><div class="sp-color-wrap"><div class="sp-color-swatch" style="background:#E32636"><input type="color" value="#E32636" data-token="--section-label-color" /></div><span class="sp-color-hex">#E32636</span></div></div>
+      <div class="sp-row"><span class="sp-label">Heading Size</span><div class="sp-slider-wrap"><input type="range" class="sp-slider" min="18" max="52" value="36" data-token="--section-heading-size" data-unit="px" /><span class="sp-slider-val">36px</span></div></div>
+    </div>
+    <div class="sp-section">
+      <div class="sp-section-title">Navigation Bar</div>
+      <div class="sp-row"><span class="sp-label">Link Color</span><div class="sp-color-wrap"><div class="sp-color-swatch" style="background:#cccccc"><input type="color" value="#cccccc" data-token="--nav-link-color" /></div><span class="sp-color-hex">#cccccc</span></div></div>
+    </div>
+    <div class="sp-section">
+      <div class="sp-section-title">Footer</div>
+      <div class="sp-row"><span class="sp-label">Heading Color</span><div class="sp-color-wrap"><div class="sp-color-swatch" style="background:#ffffff"><input type="color" value="#ffffff" data-token="--footer-heading-color" /></div><span class="sp-color-hex">#ffffff</span></div></div>
+      <div class="sp-row"><span class="sp-label">Body Text</span><div class="sp-color-wrap"><div class="sp-color-swatch" style="background:#888899"><input type="color" value="#888899" data-token="--footer-text-color" /></div><span class="sp-color-hex">#888899</span></div></div>
+    </div>
+    <div class="sp-section">
+      <div class="sp-section-title">Button Colors (Individual)</div>
+      <div class="sp-row"><span class="sp-label">Nav CTA BG</span><div class="sp-color-wrap"><div class="sp-color-swatch" style="background:#E32636"><input type="color" value="#E32636" data-token="--btn-nav-cta-bg" /></div><span class="sp-color-hex">#E32636</span></div></div>
+      <div class="sp-row"><span class="sp-label">Nav CTA Text</span><div class="sp-color-wrap"><div class="sp-color-swatch" style="background:#ffffff"><input type="color" value="#ffffff" data-token="--btn-nav-cta-text" /></div><span class="sp-color-hex">#ffffff</span></div></div>
+      <div class="sp-row"><span class="sp-label">Tab CTA BG</span><div class="sp-color-wrap"><div class="sp-color-swatch" style="background:#E32636"><input type="color" value="#E32636" data-token="--btn-tab-cta-bg" /></div><span class="sp-color-hex">#E32636</span></div></div>
+      <div class="sp-row"><span class="sp-label">Pillar CTA BG</span><div class="sp-color-wrap"><div class="sp-color-swatch" style="background:#E32636"><input type="color" value="#E32636" data-token="--btn-pillar-cta-bg" /></div><span class="sp-color-hex">#E32636</span></div></div>
+      <div class="sp-row"><span class="sp-label">Footer Start BG</span><div class="sp-color-wrap"><div class="sp-color-swatch" style="background:#E32636"><input type="color" value="#E32636" data-token="--btn-footer-start-bg" /></div><span class="sp-color-hex">#E32636</span></div></div>
+    </div>
+  </div>
+
+
+  <!-- Popovers -->
+  <div id="btn-popover">
+    <button class="bpop-close" id="bpop-close-btn">×</button>
+    <div class="bpop-title">🎨 Edit Button</div>
+    <div class="bpop-row"><div class="bpop-label">Button Text</div><input type="text" class="bpop-input" id="bpop-text-input" placeholder="Button label…" /></div>
+    <div class="bpop-row"><div class="bpop-label">Colors</div><div class="bpop-colors"><div class="bpop-color-item"><div class="bpop-color-label">Background</div><div class="bpop-color-swatch" id="bpop-bg-swatch" style="background:#E32636"><input type="color" id="bpop-bg-color" value="#E32636" /></div></div><div class="bpop-color-item"><div class="bpop-color-label">Text</div><div class="bpop-color-swatch" id="bpop-text-swatch" style="background:#ffffff"><input type="color" id="bpop-text-color" value="#ffffff" /></div></div></div></div>
+    <button class="bpop-apply" id="bpop-apply-btn">Apply Changes</button>
+  </div>
+  <div id="link-popover">
+    <button class="bpop-close" id="lpop-close-btn">×</button>
+    <div class="bpop-title">🔗 Edit Link</div>
+    <div class="bpop-row"><div class="bpop-label">Link Text</div><input type="text" class="bpop-input" id="lpop-text-input" placeholder="Link label…" /></div>
+    <div class="bpop-row"><div class="bpop-label">URL / href</div><input type="text" class="bpop-input" id="lpop-href-input" placeholder="https://… or page.html" /></div>
+    <button class="bpop-apply" id="lpop-apply-btn">Apply Link</button>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════════════════════
+       SOLUTIONS PAGE CONTENT
+       ════════════════════════════════════════════════════════════════ -->
+
+  <nav class="navbar">
+    <div class="section-container nav-inner">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-bg">
+          <img src="assets/Logo.gif" alt="Elsewedy SEDCO">
+        </div>
+      </a>
+      <div class="nav-links">
+        <a href="index_for_edit.html" data-cms-link="nav.home" data-cms-tooltip="Click to edit link">Home<span class="underline"></span></a>
+        <a href="about_for_edit.html" data-cms-link="nav.about" data-cms-tooltip="Click to edit link">About<span class="underline"></span></a>
+        <a href="solutions_for_edit.html" class="active" data-cms-link="nav.solutions" data-cms-tooltip="Click to edit link">Solutions<span class="underline"></span></a>
+        <a href="marketplace.html" data-cms-link="nav.marketplace" data-cms-tooltip="Click to edit link">Marketplace<span class="underline"></span></a>
+        <a href="contact_for_edit.html" class="nav-cta" data-cms-btn="nav.cta" data-cms-tooltip="Click to edit button">Contact Us</a>
+      </div>
+      <button class="mobile-toggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+    </div>
+    <div class="mobile-menu section-container">
+      <a href="index_for_edit.html">Home</a><a href="about_for_edit.html">About</a><a href="solutions_for_edit.html">Solutions</a><a href="marketplace.html">Marketplace</a><a href="contact_for_edit.html" class="mobile-cta">Contact Us</a>
+    </div>
+  </nav>
+
+  <section class="page-hero">
+    <div class="hero-bg" data-cms-image="sol.heroBg" data-cms-tooltip="Click to replace">
+      <img src="assets/images/about-hero-bg.png" alt="Solutions Background" style="width:100%;height:100%;object-fit:cover;">
+      <div class="overlay" style="position:absolute;inset:0;background:linear-gradient(135deg, rgba(15,15,15,0.85) 0%, rgba(26,26,26,0.75) 40%, rgba(31,16,16,0.85) 100%);"></div>
+      <div class="cms-img-overlay"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>Replace</span></div>
+    </div>
+    <div class="grid-pattern"></div>
+    <div class="accent-line-left"></div>
+    <div class="accent-line-right"></div>
+    <div class="radial-glow"></div>
+    <div class="bottom-fade"></div>
+    <div class="content">
+      <div class="section-label center light animate-in delay-1"><div class="line"></div><span data-cms-field="sol.heroLabel" data-cms-tooltip="Dbl-click to edit">Our Solutions</span></div>
+      <h1 class="animate-in delay-2" data-cms-field="sol.heroTitle" data-cms-tooltip="Dbl-click to edit">Comprehensive <span class="gradient-text">Energy Solutions</span></h1>
+      <p class="subtitle animate-in delay-3" data-cms-field="sol.heroSubtitle" data-cms-tooltip="Dbl-click to edit">End-to-end petroleum and electrical services tailored to meet the demands of modern energy infrastructure.</p>
+    </div>
+  </section>
+
+  <section class="solutions-tabs">
+    <div class="dot-pattern"></div>
+    <div class="section-container">
+      <div class="solutions-header reveal">
+        <div class="section-label center"><div class="line"></div><span data-cms-field="sol.tabsLabel" data-cms-tooltip="Dbl-click to edit">What We Offer</span></div>
+        <h2 data-cms-field="sol.tabsTitle" data-cms-tooltip="Dbl-click to edit">Explore Our Service Areas</h2>
+      </div>
+
+      <div class="solutions-grid">
+        <div>
+          <div class="tab-nav reveal">
+            <button class="tab-btn active" data-tab="panel-petroleum" data-index="0">
+              <div class="active-bar"></div><div class="tab-icon"><i data-lucide="droplets" data-cms-icon="sol.tab1icon" style="width:20px;height:20px;"></i></div>
+              <div class="tab-text"><div class="tab-title" data-cms-field="sol.tab1title" data-cms-tooltip="Dbl-click to edit">Petroleum Services</div><div class="tab-hint" data-cms-field="sol.tab1hint" data-cms-tooltip="Dbl-click to edit">Upstream & downstream solutions</div></div>
+              <div class="tab-chevron"><i data-lucide="chevron-right" style="width:16px;height:16px;"></i></div>
+            </button>
+            <button class="tab-btn" data-tab="panel-electrical" data-index="1">
+              <div class="active-bar"></div><div class="tab-icon"><i data-lucide="zap" data-cms-icon="sol.tab2icon" style="width:20px;height:20px;"></i></div>
+              <div class="tab-text"><div class="tab-title" data-cms-field="sol.tab2title" data-cms-tooltip="Dbl-click to edit">Electrical Engineering</div><div class="tab-hint" data-cms-field="sol.tab2hint" data-cms-tooltip="Dbl-click to edit">Power distribution & systems</div></div>
+              <div class="tab-chevron"><i data-lucide="chevron-right" style="width:16px;height:16px;"></i></div>
+            </button>
+            <button class="tab-btn" data-tab="panel-instrumentation" data-index="2">
+              <div class="active-bar"></div><div class="tab-icon"><i data-lucide="gauge" data-cms-icon="sol.tab3icon" style="width:20px;height:20px;"></i></div>
+              <div class="tab-text"><div class="tab-title" data-cms-field="sol.tab3title" data-cms-tooltip="Dbl-click to edit">Instrumentation & Control</div><div class="tab-hint" data-cms-field="sol.tab3hint" data-cms-tooltip="Dbl-click to edit">Automation & monitoring</div></div>
+              <div class="tab-chevron"><i data-lucide="chevron-right" style="width:16px;height:16px;"></i></div>
+            </button>
+            <button class="tab-btn" data-tab="panel-mechanical" data-index="3">
+              <div class="active-bar"></div><div class="tab-icon"><i data-lucide="wrench" data-cms-icon="sol.tab4icon" style="width:20px;height:20px;"></i></div>
+              <div class="tab-text"><div class="tab-title" data-cms-field="sol.tab4title" data-cms-tooltip="Dbl-click to edit">Mechanical Services</div><div class="tab-hint" data-cms-field="sol.tab4hint" data-cms-tooltip="Dbl-click to edit">Fabrication & maintenance</div></div>
+              <div class="tab-chevron"><i data-lucide="chevron-right" style="width:16px;height:16px;"></i></div>
+            </button>
+          </div>
+          <div class="tab-dots">
+            <div class="tab-dot active"></div><div class="tab-dot"></div><div class="tab-dot"></div><div class="tab-dot"></div>
+          </div>
+        </div>
+
+        <div class="tab-content">
+          <div class="tab-panel active" id="panel-petroleum">
+            <div class="tab-image" data-cms-image="sol.img1" data-cms-tooltip="Click to replace">
+              <img src="assets/images/solution-turnkey.png" alt="Petroleum Services" style="width:100%;height:100%;object-fit:cover;">
+              <div class="overlay"></div><div class="number-badge">01</div>
+              <div class="cms-img-overlay"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>Replace</span></div>
+            </div>
+            <h3 data-cms-field="sol.panel1title" data-cms-tooltip="Dbl-click to edit">Petroleum Services</h3>
+            <p class="tab-desc" data-cms-field="sol.panel1desc" data-cms-tooltip="Dbl-click to edit">Comprehensive upstream and downstream petroleum solutions, from well drilling and completion to production optimization and facility maintenance.</p>
+            <div class="tab-details">
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p1d1" data-cms-tooltip="Dbl-click to edit">Well Drilling & Completion</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p1d2" data-cms-tooltip="Dbl-click to edit">Production Optimization</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p1d3" data-cms-tooltip="Dbl-click to edit">Pipeline Installation</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p1d4" data-cms-tooltip="Dbl-click to edit">Facility Maintenance</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p1d5" data-cms-tooltip="Dbl-click to edit">Reservoir Management</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p1d6" data-cms-tooltip="Dbl-click to edit">Environmental Compliance</span></div>
+            </div>
+            <a href="contact.html" class="tab-cta" data-cms-btn="sol.cta1" data-cms-tooltip="Click to edit button">Request a Quote <i data-lucide="arrow-right" style="width:14px;height:14px;"></i></a>
+          </div>
+
+          <div class="tab-panel" id="panel-electrical">
+            <div class="tab-image" data-cms-image="sol.img2" data-cms-tooltip="Click to replace"><img src="assets/images/cable-tray.png" alt="Electrical Engineering" style="width:100%;height:100%;object-fit:cover;"><div class="overlay"></div><div class="number-badge">02</div><div class="cms-img-overlay"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>Replace</span></div></div>
+            <h3 data-cms-field="sol.panel2title" data-cms-tooltip="Dbl-click to edit">Electrical Engineering</h3>
+            <p class="tab-desc" data-cms-field="sol.panel2desc" data-cms-tooltip="Dbl-click to edit">Complete electrical infrastructure solutions including power distribution systems, substations, cable installation, and electrical safety systems.</p>
+            <div class="tab-details">
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p2d1" data-cms-tooltip="Dbl-click to edit">Substation Design & Build</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p2d2" data-cms-tooltip="Dbl-click to edit">Power Distribution</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p2d3" data-cms-tooltip="Dbl-click to edit">Cable Laying & Termination</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p2d4" data-cms-tooltip="Dbl-click to edit">Lighting Systems</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p2d5" data-cms-tooltip="Dbl-click to edit">Grounding & Lightning Protection</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p2d6" data-cms-tooltip="Dbl-click to edit">Electrical Testing & Commissioning</span></div>
+            </div>
+            <a href="contact.html" class="tab-cta" data-cms-btn="sol.cta2" data-cms-tooltip="Click to edit button">Request a Quote <i data-lucide="arrow-right" style="width:14px;height:14px;"></i></a>
+          </div>
+
+          <div class="tab-panel" id="panel-instrumentation">
+            <div class="tab-image" data-cms-image="sol.img3" data-cms-tooltip="Click to replace"><img src="assets/images/solution-consultation.png" alt="Instrumentation" style="width:100%;height:100%;object-fit:cover;"><div class="overlay"></div><div class="number-badge">03</div><div class="cms-img-overlay"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>Replace</span></div></div>
+            <h3 data-cms-field="sol.panel3title" data-cms-tooltip="Dbl-click to edit">Instrumentation & Control</h3>
+            <p class="tab-desc" data-cms-field="sol.panel3desc" data-cms-tooltip="Dbl-click to edit">Advanced automation, SCADA systems, and process control solutions that optimize operations and ensure safety across all facility types.</p>
+            <div class="tab-details">
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p3d1" data-cms-tooltip="Dbl-click to edit">SCADA Systems</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p3d2" data-cms-tooltip="Dbl-click to edit">PLC/DCS Programming</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p3d3" data-cms-tooltip="Dbl-click to edit">Fire & Gas Detection</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p3d4" data-cms-tooltip="Dbl-click to edit">Process Instrumentation</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p3d5" data-cms-tooltip="Dbl-click to edit">Calibration Services</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p3d6" data-cms-tooltip="Dbl-click to edit">Telemetry Solutions</span></div>
+            </div>
+            <a href="contact.html" class="tab-cta" data-cms-btn="sol.cta3" data-cms-tooltip="Click to edit button">Request a Quote <i data-lucide="arrow-right" style="width:14px;height:14px;"></i></a>
+          </div>
+
+          <div class="tab-panel" id="panel-mechanical">
+            <div class="tab-image" data-cms-image="sol.img4" data-cms-tooltip="Click to replace"><img src="assets/images/explosion-proof.png" alt="Mechanical Services" style="width:100%;height:100%;object-fit:cover;"><div class="overlay"></div><div class="number-badge">04</div><div class="cms-img-overlay"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>Replace</span></div></div>
+            <h3 data-cms-field="sol.panel4title" data-cms-tooltip="Dbl-click to edit">Mechanical Services</h3>
+            <p class="tab-desc" data-cms-field="sol.panel4desc" data-cms-tooltip="Dbl-click to edit">Full-spectrum mechanical engineering services including fabrication, piping, rotating equipment, and structural steel works for energy facilities.</p>
+            <div class="tab-details">
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p4d1" data-cms-tooltip="Dbl-click to edit">Steel Fabrication</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p4d2" data-cms-tooltip="Dbl-click to edit">Piping Installation</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p4d3" data-cms-tooltip="Dbl-click to edit">Rotating Equipment</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p4d4" data-cms-tooltip="Dbl-click to edit">Pressure Vessel Maintenance</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p4d5" data-cms-tooltip="Dbl-click to edit">Welding Services</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p4d6" data-cms-tooltip="Dbl-click to edit">NDT Inspection</span></div>
+            </div>
+            <a href="contact.html" class="tab-cta" data-cms-btn="sol.cta4" data-cms-tooltip="Click to edit button">Request a Quote <i data-lucide="arrow-right" style="width:14px;height:14px;"></i></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pillars-section">
+    <div class="grid-bg"></div><div class="glow"></div>
+    <div class="section-container">
+      <div class="pillars-header reveal">
+        <div class="section-label center light"><div class="line"></div><span data-cms-field="sol.pillarsLabel" data-cms-tooltip="Dbl-click to edit">Why Choose Us</span></div>
+        <h2 data-cms-field="sol.pillarsTitle" data-cms-tooltip="Dbl-click to edit">Our Core <span>Differentiators</span></h2>
+      </div>
+      <div class="pillars-grid">
+        <div class="pillar-card reveal" data-delay="0">
+          <div class="top-line"></div><div class="icon-box"><i data-lucide="shield" style="width:24px;height:24px;" data-cms-icon="sol.pillarIcon1" data-cms-tooltip="Dbl-click to change icon"></i></div>
+          <h3 data-cms-field="sol.pillar1title" data-cms-tooltip="Dbl-click to edit">Safety First</h3>
+          <p data-cms-field="sol.pillar1desc" data-cms-tooltip="Dbl-click to edit">Zero-incident culture with rigorous HSE protocols embedded in every operation and project phase.</p>
+        </div>
+        <div class="pillar-card reveal" data-delay="0.1">
+          <div class="top-line"></div><div class="icon-box"><i data-lucide="lightbulb" style="width:24px;height:24px;" data-cms-icon="sol.pillarIcon2" data-cms-tooltip="Dbl-click to change icon"></i></div>
+          <h3 data-cms-field="sol.pillar2title" data-cms-tooltip="Dbl-click to edit">Innovation Driven</h3>
+          <p data-cms-field="sol.pillar2desc" data-cms-tooltip="Dbl-click to edit">Leveraging cutting-edge technologies and methodologies to deliver smarter, more efficient solutions.</p>
+        </div>
+        <div class="pillar-card reveal" data-delay="0.2">
+          <div class="top-line"></div><div class="icon-box"><i data-lucide="leaf" style="width:24px;height:24px;" data-cms-icon="sol.pillarIcon3" data-cms-tooltip="Dbl-click to change icon"></i></div>
+          <h3 data-cms-field="sol.pillar3title" data-cms-tooltip="Dbl-click to edit">Sustainability</h3>
+          <p data-cms-field="sol.pillar3desc" data-cms-tooltip="Dbl-click to edit">Committed to environmental stewardship and supporting the global energy transition.</p>
+        </div>
+      </div>
+      <div class="pillars-cta reveal">
+        <a href="contact.html" class="btn-primary" data-cms-btn="sol.ctaMain" data-cms-tooltip="Click to edit button">Discuss Your Project <i data-lucide="arrow-right" style="width:16px;height:16px;"></i></a>
+        <p data-cms-field="sol.ctaHelper" data-cms-tooltip="Dbl-click to edit">Our team is ready to help you find the right solution.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="footer-accent-top"></div>
+    <div class="section-container" style="padding-top:64px;padding-bottom:48px;">
+      <div class="footer-cta reveal">
+        <h2 data-cms-field="footer.ctaTitle" data-cms-tooltip="Dbl-click to edit">Ready to <span>Transform</span> Your Operations?</h2>
+        <p data-cms-field="footer.ctaDesc" data-cms-tooltip="Dbl-click to edit">Partner with us for innovative petroleum and electrical solutions that drive efficiency, safety, and sustainable growth.</p>
+        <div class="footer-cta-buttons">
+          <a href="contact.html" class="btn-primary footer-btn" data-cms-btn="footer.ctaBtn1" data-cms-tooltip="Click to edit button">Get Started <i data-lucide="arrow-right" style="width:16px;height:16px;"></i></a>
+          <a href="solutions.html" class="btn-outline" data-cms-btn="footer.ctaBtn2" data-cms-tooltip="Click to edit button" style="border-color:rgba(255,255,255,0.15);">View Solutions</a>
+        </div>
+      </div>
+      <div class="footer-divider" style="margin-top:48px;"></div>
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="index.html" class="nav-logo" style="display:inline-block; text-decoration:none;">
+            <div class="logo-bg">
+              <img src="assets/Logo.gif" alt="Elsewedy SEDCO">
+            </div>
+          </a>
+          <p style="margin-top:12px;" data-cms-field="footer.brandText" data-cms-tooltip="Dbl-click to edit">Leading provider of integrated petroleum and electrical services across the MENA region.</p>
+        </div>
+        <div class="footer-section"><h4 data-cms-field="footer.servicesHeading" data-cms-tooltip="Dbl-click to edit">Services</h4><ul><li><a href="solutions.html" data-cms-link="footer.link1" data-cms-tooltip="Click to edit link">Petroleum Services</a></li><li><a href="solutions.html" data-cms-link="footer.link2" data-cms-tooltip="Click to edit link">Electrical Systems</a></li><li><a href="solutions.html" data-cms-link="footer.link3" data-cms-tooltip="Click to edit link">Instrumentation</a></li><li><a href="marketplace.html" data-cms-link="footer.link4" data-cms-tooltip="Click to edit link">Marketplace</a></li></ul></div>
+        <div class="footer-section"><h4 data-cms-field="footer.companyHeading" data-cms-tooltip="Dbl-click to edit">Company</h4><ul><li><a href="about.html" data-cms-link="footer.link5" data-cms-tooltip="Click to edit link">About Us</a></li><li><a href="contact.html" data-cms-link="footer.link6" data-cms-tooltip="Click to edit link">Contact</a></li></ul></div>
+        <div class="footer-section footer-contact"><h4 data-cms-field="footer.contactHeading" data-cms-tooltip="Dbl-click to edit">Contact</h4><ul><li><i data-lucide="map-pin" style="width:16px;height:16px;" data-cms-icon="footer.iconMapPin" data-cms-tooltip="Dbl-click to change icon"></i><span data-cms-field="footer.address" data-cms-tooltip="Dbl-click to edit">Cairo, Egypt</span></li><li><i data-lucide="phone" style="width:16px;height:16px;" data-cms-icon="footer.iconPhone" data-cms-tooltip="Dbl-click to change icon"></i><span data-cms-field="footer.phone" data-cms-tooltip="Dbl-click to edit">+20 2 2345 6789</span></li><li><i data-lucide="mail" style="width:16px;height:16px;" data-cms-icon="footer.iconMail" data-cms-tooltip="Dbl-click to change icon"></i><span data-cms-field="footer.email" data-cms-tooltip="Dbl-click to edit">info@elsewedysedco.com</span></li></ul></div>
+      </div>
+      <div class="footer-bottom">
+        <p data-cms-field="footer.copyright" data-cms-tooltip="Dbl-click to edit">© 2024 Elsewedy SEDCO. All rights reserved.</p>
+        <div class="footer-bottom-links">
+          <a href="#" data-cms-link="footer.privacy" data-cms-tooltip="Click to edit link">Privacy Policy</a>
+          <a href="#" data-cms-link="footer.terms" data-cms-tooltip="Click to edit link">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/navbar.js?v=1.1.0"></script>
+  <script src="js/animations.js"></script>
+  <script src="js/solutions.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', function() { lucide.createIcons(); });</script>
+
+  <script>
+    window.CMS_PAGE_KEY = 'solutions';
+    window.CMS_PREVIEW_PAGE = 'solutions.html';
+    window.CMS_DEFAULT_CARDS = [];
+  </script>
+  <script src="js/cms-editor.js?v=1.3.0"></script>
+  <script src="js/auth-session.js"></script>
+</body>
+</html>

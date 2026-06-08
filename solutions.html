@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Solutions — Elsewedy SEDCO</title>
+  <meta name="description" content="Explore Elsewedy SEDCO's comprehensive petroleum, electrical, and instrumentation solutions." />
+  <link rel="icon" type="image/png" href="assets/Logo.png" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/navbar.css" />
+  <link rel="stylesheet" href="css/footer.css" />
+  <link rel="stylesheet" href="css/solutions.css" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <!-- Shared Navbar (injected by shared-components.js) -->
+  <div id="shared-navbar"></div>
+
+  <section class="page-hero">
+    <div class="hero-bg">
+      <img src="assets/images/about-hero-bg.png" alt="Solutions Background" style="width:100%;height:100%;object-fit:cover;">
+      <div class="overlay" style="position:absolute;inset:0;background:linear-gradient(135deg, rgba(15,15,15,0.85) 0%, rgba(26,26,26,0.75) 40%, rgba(31,16,16,0.85) 100%);"></div>
+    </div>
+    <div class="grid-pattern"></div>
+    <div class="accent-line-left"></div>
+    <div class="accent-line-right"></div>
+    <div class="radial-glow"></div>
+    <div class="bottom-fade"></div>
+    <div class="content">
+      <div class="section-label center light animate-in delay-1">
+        <div class="line"></div>
+        <span data-cms-field="sol.heroLabel">Our Solutions</span>
+      </div>
+      <h1 class="animate-in delay-2" data-cms-field="sol.heroTitle">Comprehensive <span class="gradient-text">Energy Solutions</span></h1>
+      <p class="subtitle animate-in delay-3" data-cms-field="sol.heroSubtitle">End-to-end petroleum and electrical services tailored to meet the demands of modern energy infrastructure.</p>
+    </div>
+  </section>
+
+  <section class="solutions-tabs">
+    <div class="dot-pattern"></div>
+    <div class="section-container">
+      <div class="solutions-header reveal">
+        <div class="section-label center">
+          <div class="line"></div>
+          <span data-cms-field="sol.tabsLabel">What We Offer</span>
+        </div>
+        <h2 data-cms-field="sol.tabsTitle">Explore Our Service Areas</h2>
+      </div>
+
+      <div class="solutions-grid">
+        <div>
+          <div class="tab-nav reveal">
+            <button class="tab-btn active" data-tab="panel-petroleum" data-index="0">
+              <div class="active-bar"></div>
+              <div class="tab-icon"><i data-lucide="droplets" data-cms-icon="sol.tab1icon" style="width:20px;height:20px;"></i></div>
+              <div class="tab-text">
+                <div class="tab-title" data-cms-field="sol.tab1title">Petroleum Services</div>
+                <div class="tab-hint" data-cms-field="sol.tab1hint">Upstream & downstream solutions</div>
+              </div>
+              <div class="tab-chevron"><i data-lucide="chevron-right" style="width:16px;height:16px;"></i></div>
+            </button>
+            <button class="tab-btn" data-tab="panel-electrical" data-index="1">
+              <div class="active-bar"></div>
+              <div class="tab-icon"><i data-lucide="zap" data-cms-icon="sol.tab2icon" style="width:20px;height:20px;"></i></div>
+              <div class="tab-text">
+                <div class="tab-title" data-cms-field="sol.tab2title">Electrical Engineering</div>
+                <div class="tab-hint" data-cms-field="sol.tab2hint">Power distribution & systems</div>
+              </div>
+              <div class="tab-chevron"><i data-lucide="chevron-right" style="width:16px;height:16px;"></i></div>
+            </button>
+            <button class="tab-btn" data-tab="panel-instrumentation" data-index="2">
+              <div class="active-bar"></div>
+              <div class="tab-icon"><i data-lucide="gauge" data-cms-icon="sol.tab3icon" style="width:20px;height:20px;"></i></div>
+              <div class="tab-text">
+                <div class="tab-title" data-cms-field="sol.tab3title">Instrumentation & Control</div>
+                <div class="tab-hint" data-cms-field="sol.tab3hint">Automation & monitoring</div>
+              </div>
+              <div class="tab-chevron"><i data-lucide="chevron-right" style="width:16px;height:16px;"></i></div>
+            </button>
+            <button class="tab-btn" data-tab="panel-mechanical" data-index="3">
+              <div class="active-bar"></div>
+              <div class="tab-icon"><i data-lucide="wrench" data-cms-icon="sol.tab4icon" style="width:20px;height:20px;"></i></div>
+              <div class="tab-text">
+                <div class="tab-title" data-cms-field="sol.tab4title">Mechanical Services</div>
+                <div class="tab-hint" data-cms-field="sol.tab4hint">Fabrication & maintenance</div>
+              </div>
+              <div class="tab-chevron"><i data-lucide="chevron-right" style="width:16px;height:16px;"></i></div>
+            </button>
+          </div>
+
+          <div class="tab-dots">
+            <div class="tab-dot active"></div>
+            <div class="tab-dot"></div>
+            <div class="tab-dot"></div>
+            <div class="tab-dot"></div>
+          </div>
+        </div>        <div class="tab-content">
+          <div class="tab-panel active" id="panel-petroleum">
+            <div class="tab-image" data-cms-image="sol.img1">
+              <img src="assets/images/solution-turnkey.png" alt="Petroleum Services" style="width:100%;height:100%;object-fit:cover;">
+              <div class="overlay"></div>
+              <div class="number-badge">01</div>
+            </div>
+            <h3 data-cms-field="sol.panel1title">Petroleum Services</h3>
+            <p class="tab-desc" data-cms-field="sol.panel1desc">Comprehensive upstream and downstream petroleum solutions, from well drilling and completion to production optimization and facility maintenance.</p>
+            <div class="tab-details">
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p1d1">Well Drilling & Completion</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p1d2">Production Optimization</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p1d3">Pipeline Installation</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p1d4">Facility Maintenance</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p1d5">Reservoir Management</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p1d6">Environmental Compliance</span></div>
+            </div>
+            <a href="contact.html" class="tab-cta" data-cms-btn="sol.cta1">Request a Quote <i data-lucide="arrow-right" style="width:14px;height:14px;"></i></a>
+          </div>
+ 
+          <div class="tab-panel" id="panel-electrical">
+            <div class="tab-image" data-cms-image="sol.img2">
+              <img src="assets/images/cable-tray.png" alt="Electrical Engineering" style="width:100%;height:100%;object-fit:cover;">
+              <div class="overlay"></div>
+              <div class="number-badge">02</div>
+            </div>
+            <h3 data-cms-field="sol.panel2title">Electrical Engineering</h3>
+            <p class="tab-desc" data-cms-field="sol.panel2desc">Complete electrical infrastructure solutions including power distribution systems, substations, cable installation, and electrical safety systems.</p>
+            <div class="tab-details">
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p2d1">Substation Design & Build</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p2d2">Power Distribution</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p2d3">Cable Laying & Termination</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p2d4">Lighting Systems</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p2d5">Grounding & Lightning Protection</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p2d6">Electrical Testing & Commissioning</span></div>
+            </div>
+            <a href="contact.html" class="tab-cta" data-cms-btn="sol.cta2">Request a Quote <i data-lucide="arrow-right" style="width:14px;height:14px;"></i></a>
+          </div>
+ 
+          <div class="tab-panel" id="panel-instrumentation">
+            <div class="tab-image" data-cms-image="sol.img3">
+              <img src="assets/images/solution-consultation.png" alt="Instrumentation & Control" style="width:100%;height:100%;object-fit:cover;">
+              <div class="overlay"></div>
+              <div class="number-badge">03</div>
+            </div>
+            <h3 data-cms-field="sol.panel3title">Instrumentation & Control</h3>
+            <p class="tab-desc" data-cms-field="sol.panel3desc">Advanced automation, SCADA systems, and process control solutions that optimize operations and ensure safety across all facility types.</p>
+            <div class="tab-details">
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p3d1">SCADA Systems</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p3d2">PLC/DCS Programming</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p3d3">Fire & Gas Detection</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p3d4">Process Instrumentation</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p3d5">Calibration Services</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p3d6">Telemetry Solutions</span></div>
+            </div>
+            <a href="contact.html" class="tab-cta" data-cms-btn="sol.cta3">Request a Quote <i data-lucide="arrow-right" style="width:14px;height:14px;"></i></a>
+          </div>
+ 
+          <div class="tab-panel" id="panel-mechanical">
+            <div class="tab-image" data-cms-image="sol.img4">
+              <img src="assets/images/explosion-proof.png" alt="Mechanical Services" style="width:100%;height:100%;object-fit:cover;">
+              <div class="overlay"></div>
+              <div class="number-badge">04</div>
+            </div>
+            <h3 data-cms-field="sol.panel4title">Mechanical Services</h3>
+            <p class="tab-desc" data-cms-field="sol.panel4desc">Full-spectrum mechanical engineering services including fabrication, piping, rotating equipment, and structural steel works for energy facilities.</p>
+            <div class="tab-details">
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p4d1">Steel Fabrication</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p4d2">Piping Installation</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p4d3">Rotating Equipment</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p4d4">Pressure Vessel Maintenance</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p4d5">Welding Services</span></div>
+              <div class="tab-detail-item"><div class="dot"></div><span data-cms-field="sol.p4d6">NDT Inspection</span></div>
+            </div>
+            <a href="contact.html" class="tab-cta" data-cms-btn="sol.cta4">Request a Quote <i data-lucide="arrow-right" style="width:14px;height:14px;"></i></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pillars-section">
+    <div class="grid-bg"></div>
+    <div class="glow"></div>
+    <div class="section-container">
+      <div class="pillars-header reveal">
+        <div class="section-label center light">
+          <div class="line"></div>
+          <span data-cms-field="sol.pillarsLabel">Why Choose Us</span>
+        </div>
+        <h2 data-cms-field="sol.pillarsTitle">Our Core <span>Differentiators</span></h2>
+      </div>
+
+      <div class="pillars-grid">
+        <div class="pillar-card reveal" data-delay="0">
+          <div class="top-line"></div>
+          <div class="icon-box"><i data-lucide="shield" data-cms-icon="sol.pillarIcon1" style="width:24px;height:24px;"></i></div>
+          <h3 data-cms-field="sol.pillar1title">Safety First</h3>
+          <p data-cms-field="sol.pillar1desc">Zero-incident culture with rigorous HSE protocols embedded in every operation and project phase.</p>
+        </div>
+        <div class="pillar-card reveal" data-delay="0.1">
+          <div class="top-line"></div>
+          <div class="icon-box"><i data-lucide="lightbulb" data-cms-icon="sol.pillarIcon2" style="width:24px;height:24px;"></i></div>
+          <h3 data-cms-field="sol.pillar2title">Innovation Driven</h3>
+          <p data-cms-field="sol.pillar2desc">Leveraging cutting-edge technologies and methodologies to deliver smarter, more efficient solutions.</p>
+        </div>
+        <div class="pillar-card reveal" data-delay="0.2">
+          <div class="top-line"></div>
+          <div class="icon-box"><i data-lucide="leaf" data-cms-icon="sol.pillarIcon3" style="width:24px;height:24px;"></i></div>
+          <h3 data-cms-field="sol.pillar3title">Sustainability</h3>
+          <p data-cms-field="sol.pillar3desc">Committed to environmental stewardship and supporting the global energy transition.</p>
+        </div>
+      </div>
+
+      <div class="pillars-cta reveal">
+        <a href="contact.html" class="btn-primary" data-cms-btn="sol.ctaMain">Discuss Your Project <i data-lucide="arrow-right" style="width:16px;height:16px;"></i></a>
+        <p data-cms-field="sol.ctaHelper">Our team is ready to help you find the right solution.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Shared Footer + CTA (injected by shared-components.js) -->
+  <div id="shared-footer"></div>
+
+  <script src="js/shared-components.js"></script>
+  <script src="js/navbar.js?v=1.1.0"></script>
+  <script src="js/animations.js"></script>
+  <script src="js/solutions.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', function() { lucide.createIcons(); });</script>
+  <script src="js/cms-loader.js"></script>
+  <script src="js/auth-session.js"></script>
+</body>
+</html>

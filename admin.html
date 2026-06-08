@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard - Elsewedy SEDCO</title>
+  <link rel="icon" type="image/png" href="assets/Logo.png" />
+  
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+  
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  
+  <script src="js/admin.js?v=1.2.1" defer></script>
+</head>
+<body class="admin-body">
+
+  <div id="adminApp" style="display: none;">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div style="display:flex; flex-direction:column; align-items:flex-start;">
+          <span style="font-family:'Outfit',sans-serif;font-weight:800;color:white;font-size:20px;letter-spacing:-0.02em;line-height:1;">Elsewedy <span style="color:#E32636;">SEDCO</span></span>
+          <svg width="150" height="10" viewBox="0 0 185 20" style="margin-top:2px;">
+            <path d="M0,5 Q92.5,25 185,5" fill="none" stroke="#E32636" stroke-width="6" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav" id="sidebarNav">
+        <!-- Injected via JS based on roles -->
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="avatar"><i data-lucide="user"></i></div>
+          <div class="details">
+            <span id="currentUserEmail">admin@domain.com</span>
+            <span id="currentUserRole" class="role-badge">Admin</span>
+          </div>
+        </div>
+        <button id="logoutBtn" class="logout-btn">
+          <i data-lucide="log-out"></i> Logout
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="topbar">
+        <h2 id="pageTitle">Dashboard</h2>
+        <div class="topbar-actions">
+          <button class="icon-btn"><i data-lucide="bell"></i></button>
+        </div>
+      </header>
+      
+      <div class="content-area" id="contentArea">
+        <!-- Dynamic Content Injected Here -->
+      </div>
+    </main>
+    
+  </div>
+
+  <!-- Auth Wrapper (Shown if not logged in or loading) -->
+  <div id="authWrapper" class="admin-auth-wrapper">
+    <div class="loader-spinner"></div>
+    <p>Verifying access...</p>
+  </div>
+  
+  <!-- Modals Container -->
+  <div id="modalsContainer"></div>
+
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elsewedy SEDCO — Petroleum & Electrical Services</title>
+  <meta name="description" content="Elsewedy SEDCO delivers integrated petroleum and electrical solutions across MENA. World-class equipment, engineering excellence, and comprehensive field services." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/png" href="assets/Logo.png" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/navbar.css" />
+  <link rel="stylesheet" href="css/footer.css" />
+  <link rel="stylesheet" href="css/home.css" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <!-- Shared Navbar (injected by shared-components.js) -->
+  <div id="shared-navbar"></div>
+
+  <section class="hero">
+    <div class="hero-bg-image" data-cms-image="hero.image">
+      <img src="assets/images/hero-bg.png" alt="Hero Background">
+      <div class="hero-overlay-bottom"></div>
+      <div class="hero-overlay-left"></div>
+    </div>
+    <div class="hero-accent-top"></div>
+    <div class="hero-bottom-fade"></div>
+
+    <div class="hero-content section-container">
+      <h1 class="animate-in delay-2">
+        <span data-cms-field="hero.title">Powering the Future of</span><br>
+        <span class="gradient-text" data-cms-field="hero.titleHighlight">Energy &amp; Infrastructure</span>
+      </h1>
+
+      <p class="hero-subtitle animate-in delay-3" data-cms-field="hero.subtitle">
+        Delivering integrated petroleum and electrical solutions across MENA with world-class equipment, engineering excellence, and comprehensive field services.
+      </p>
+
+      <div class="hero-buttons animate-in delay-4">
+        <a href="solutions.html" class="btn-primary" data-cms-btn="hero.btnExplore">
+          Explore Solutions <i data-lucide="arrow-right" data-cms-icon="hero.btnExplore.icon" style="width:18px;height:18px;"></i>
+        </a>
+        <a href="about.html" class="btn-outline" data-cms-btn="hero.btnLearn">
+          <i data-lucide="play-circle" data-cms-icon="hero.btnLearn.icon" style="width:18px;height:18px;"></i> Learn More
+        </a>
+      </div>
+
+      <div class="hero-stats animate-in delay-5">
+        <div>
+          <div class="hero-stat-value" data-cms-field="hero.stat1Value">35+</div>
+          <div class="hero-stat-label" data-cms-field="hero.stat1Label">Years</div>
+        </div>
+        <div>
+          <div class="hero-stat-value" data-cms-field="hero.stat2Value">500+</div>
+          <div class="hero-stat-label" data-cms-field="hero.stat2Label">Projects</div>
+        </div>
+        <div>
+          <div class="hero-stat-value" data-cms-field="hero.stat3Value">15+</div>
+          <div class="hero-stat-label" data-cms-field="hero.stat3Label">Countries</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="about-section">
+    <div class="dot-pattern"></div>
+    <div class="section-container about-grid">
+      <div class="left-column">
+        <div class="reveal">
+          <div class="section-label">
+            <div class="line"></div>
+            <span data-cms-field="about.label">Who We Are</span>
+          </div>
+          <h2 class="about-title" data-cms-field="about.title">
+            Engineering <span>Excellence</span> for a Sustainable Future
+          </h2>
+          <p class="about-text" data-cms-field="about.text">
+            Elsewedy SEDCO is a leading provider of integrated services in the petroleum and electrical sectors, delivering cutting-edge solutions to clients across the MENA region and beyond.
+          </p>
+          <a href="about.html" class="about-cta" style="margin-bottom: 24px;" data-cms-btn="about.ctaBtn">
+            Discover Our Story <i data-lucide="arrow-right" data-cms-icon="about.ctaBtn.icon" style="width:16px;height:16px;"></i>
+          </a>
+        </div>
+        <div class="about-image reveal" style="width: 100%; height: 260px; margin-top:24px;" data-cms-image="about.image">
+          <img src="assets/images/about-corporate.png" alt="Who We Are" style="border-radius:16px;object-fit:cover;width:100%;height:100%;box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
+        </div>
+      </div>
+
+      <div class="right-column feature-cards reveal" data-delay="0.2">
+        <div class="feature-card premium-card-style">
+          <div class="card-icon-wrap"><i data-lucide="shield-check" data-cms-icon="about.card1.icon" style="width:24px;height:24px;"></i></div>
+          <div>
+            <h3 style="font-weight: 600; color: var(--brand-dark); font-size: 1rem; margin-bottom: 4px;" data-cms-field="about.card1Title">Certified Quality</h3>
+            <p style="color: var(--brand-gray-medium); font-size: 0.875rem; line-height: 1.6;" data-cms-field="about.card1Text">ISO 9001, 14001, and 45001 certified operations ensuring the highest standards.</p>
+          </div>
+        </div>
+        <div class="feature-card premium-card-style">
+          <div class="card-icon-wrap"><i data-lucide="globe" data-cms-icon="about.card2.icon" style="width:24px;height:24px;"></i></div>
+          <div>
+            <h3 style="font-weight: 600; color: var(--brand-dark); font-size: 1rem; margin-bottom: 4px;" data-cms-field="about.card2Title">Global Reach</h3>
+            <p style="color: var(--brand-gray-medium); font-size: 0.875rem; line-height: 1.6;" data-cms-field="about.card2Text">Operations spanning 15+ countries with localized expertise and global standards.</p>
+          </div>
+        </div>
+        <div class="feature-card premium-card-style">
+          <div class="card-icon-wrap"><i data-lucide="users" data-cms-icon="about.card3.icon" style="width:24px;height:24px;"></i></div>
+          <div>
+            <h3 style="font-weight: 600; color: var(--brand-dark); font-size: 1rem; margin-bottom: 4px;" data-cms-field="about.card3Title">Expert Team</h3>
+            <p style="color: var(--brand-gray-medium); font-size: 0.875rem; line-height: 1.6;" data-cms-field="about.card3Text">Over 2,000 skilled professionals delivering excellence across every project.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="categories-section">
+    <div class="decoration-tr"></div>
+    <div class="decoration-bl"></div>
+    <div class="section-container">
+      <div class="categories-header reveal">
+        <div class="section-label center">
+          <div class="line"></div>
+          <span data-cms-field="categories.sectionLabel">Our Expertise</span>
+        </div>
+        <h2 data-cms-field="categories.sectionTitle">Comprehensive Service Categories</h2>
+        <p data-cms-field="categories.sectionSubtitle">From petroleum services to electrical infrastructure, we deliver end-to-end solutions for the energy industry.</p>
+      </div>
+
+      <div class="categories-grid">
+        <div class="category-card reveal" data-delay="0">
+          <div class="card-image">
+            <img src="assets/images/solution-turnkey.png" alt="Petroleum Services">
+            <div class="overlay"></div>
+            <div class="card-number"><span>01</span></div>
+          </div>
+          <div class="card-content">
+            <h3>Petroleum Services</h3>
+            <p class="card-desc">Complete upstream and downstream petroleum solutions including drilling, well completion, and production optimization.</p>
+          </div>
+        </div>
+
+        <div class="category-card reveal" data-delay="0.1">
+          <div class="card-image">
+            <img src="assets/images/cable-tray.png" alt="Electrical Systems">
+            <div class="overlay"></div>
+            <div class="card-number"><span>02</span></div>
+          </div>
+          <div class="card-content">
+            <h3>Electrical Systems</h3>
+            <p class="card-desc">Design, installation, and maintenance of electrical infrastructure for industrial and commercial applications.</p>
+          </div>
+        </div>
+
+        <div class="category-card reveal" data-delay="0.2">
+          <div class="card-image">
+            <img src="assets/images/solution-consultation.png" alt="Instrumentation & Control">
+            <div class="overlay"></div>
+            <div class="card-number"><span>03</span></div>
+          </div>
+          <div class="card-content">
+            <h3>Instrumentation & Control</h3>
+            <p class="card-desc">Advanced automation and control systems for process optimization and operational efficiency.</p>
+          </div>
+        </div>
+
+        <div class="category-card reveal" data-delay="0.3">
+          <div class="card-image">
+            <img src="assets/images/explosion-proof.png" alt="Mechanical Services">
+            <div class="overlay"></div>
+            <div class="card-number"><span>04</span></div>
+          </div>
+          <div class="card-content">
+            <h3>Mechanical Services</h3>
+            <p class="card-desc">Comprehensive mechanical engineering services including fabrication, installation, and maintenance.</p>
+          </div>
+        </div>
+
+        <div class="category-card reveal" data-delay="0.4">
+          <div class="card-image">
+            <img src="assets/images/solution-compliance.png" alt="Civil Construction">
+            <div class="overlay"></div>
+            <div class="card-number"><span>05</span></div>
+          </div>
+          <div class="card-content">
+            <h3>Civil Construction</h3>
+            <p class="card-desc">Full-scale civil engineering and construction services for energy infrastructure projects.</p>
+          </div>
+        </div>
+
+        <div class="category-card reveal" data-delay="0.5">
+          <div class="card-image">
+            <img src="assets/images/solar-energy.png" alt="Renewable Energy">
+            <div class="overlay"></div>
+            <div class="card-number"><span>06</span></div>
+          </div>
+          <div class="card-content">
+            <h3>Renewable Energy</h3>
+            <p class="card-desc">Solar, wind, and sustainable energy solutions supporting the global energy transition.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Shared Footer + CTA (injected by shared-components.js) -->
+  <div id="shared-footer"></div>
+
+  <script src="js/shared-components.js"></script>
+  <script src="js/navbar.js"></script>
+  <script src="js/animations.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', function() { lucide.createIcons(); });</script>
+  <script src="js/cms-loader.js"></script>
+  <script src="js/auth-session.js"></script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+================================================================================
+ELSEWEDY SEDCO - PROJECT ARCHITECTURE & END-TO-END ANALYSIS
+================================================================================
+
+1. Overall Architecture & Tech Stack
+--------------------------------------------------------------------------------
+The overarching architecture of the Elsewedy SEDCO platform is a "Serverless" Static Site combined with a Backend-as-a-Service (BaaS) provider, augmented by a highly customized Local Storage-based Content Management System (CMS).
+
+- Frontend: Built using Vanilla HTML5, CSS3, and JavaScript (ES6+). No heavy reactive frameworks (like React or Angular) are used, which guarantees extremely fast load times and a small footprint.
+- Backend / Database / Auth: Supabase is used as the BaaS. It handles secure authentication, database storage (PostgreSQL), and backend business logic (via Edge Functions).
+- 3D Rendering: Three.js is utilized for the interactive 3D globe on the frontend.
+- Icons & Visuals: Lucide (for clean, lightweight SVG icons) and Chart.js (for rendering analytics on the admin dashboard).
+- State Management (CMS): The custom visual CMS heavily relies on the browser's `localStorage` to persist text content, images, code edits, and 3D globe configurations before they are downloaded or applied to production views.
+
+2. Database Integration
+--------------------------------------------------------------------------------
+The application relies entirely on Supabase (PostgreSQL under the hood) for its database layer. The connection is established directly from the frontend via the Supabase JS Client (`@supabase/supabase-js`). 
+
+Connection Setup (e.g., in `admin.js`):
+```javascript
+const SUPABASE_URL = "https://nnwcwqasmdpbvotfepvy.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_llEtCRU2fkmNycPY4HwJ5w_XqnkQFQf";
+const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+```
+
+Data Flow & Query Execution:
+Database queries are executed asynchronously using Supabase's chained query builder syntax. The database is cleanly split into tables like: `products`, `product_orders`, `contacts`, `user_roles`, and `admin_logs`.
+For example, fetching paginated logs with an exact count:
+```javascript
+const { data: logs, count, error } = await supabase
+  .from('admin_logs')
+  .select('*', { count: 'exact' })
+  .eq('entity_type', logsFilterEntity)
+  .order('created_at', { ascending: false })
+  .range(from, to);
+```
+Role-Based Access Control (RBAC) is implemented by querying the `user_roles` table upon login to dictate dashboard visibility (Admin, Store Manager, Order Manager, etc.).
+
+3. Email Sending Mechanism
+--------------------------------------------------------------------------------
+The email system operates in two distinct contexts: User Verification and Admin Notifications.
+
+- Verification (OTP): When a user submits a contact form (`contact.js`), the app triggers `supabase.auth.signInWithOtp()` to send an 8-digit verification code to the user's email. Only after successful verification (`supabase.auth.verifyOtp()`) is the contact form data officially inserted into the database.
+- Notifications (Edge Functions): In `admin.js`, when an admin confirms/rejects an order or replies to a user message, the app invokes a secure Supabase Edge Function named `send-email`.
+```javascript
+await supabase.functions.invoke('send-email', {
+  body: {
+    to: order.customer_email,
+    subject: 'Order Confirmed - Elsewedy SEDCO',
+    html: `<p>Dear ${order.customer_name}, ...</p>`
+  }
+});
+```
+This isolates the sensitive SMTP logic and API keys securely on Supabase's servers, completely hiding them from the client-side code.
+
+4. 3D Earth (Home Page)
+--------------------------------------------------------------------------------
+The 3D Earth element is powered by Three.js and OrbitControls, instantiated via `InteractiveGlobe` in `js/globe.js`.
+- Implementation: It creates a WebGLRenderer, a PerspectiveCamera, and a Scene. It generates a sphere (`SphereGeometry`) and applies an earth texture map alongside a topological bump map for 3D terrain relief. An atmospheric Fresnel glow shader is added around the sphere to give it a reddish branded tint.
+- Logic & Data Integration: Location coordinates are dynamically loaded. The script first checks `localStorage` (`sedco_cms_globe`)—allowing the Admin panel to update globe pins in real-time. If empty, it falls back to an inline list of hardcoded coordinates.
+- Visuals & Performance: Coordinates (Lat/Lng) are mathematically converted to 3D Vector3 positions on the sphere. Each location spawns a custom 3D pin (a cone and sphere) and pulsing ring geometries that animate via a `requestAnimationFrame` loop. To save CPU/GPU resources, the render loop utilizes `IntersectionObserver` to pause rendering entirely when the globe is scrolled out of view.
+
+5. The `_for_edit` Files
+--------------------------------------------------------------------------------
+Files containing `_for_edit` in their names (e.g., `index_for_edit.html`) form the backbone of the custom Visual CMS. 
+- Underlying Logic: These pages are structural replicas of the production pages but inject `js/cms-editor.js`. 
+- Data Processing: The script hunts for specific HTML data attributes like `data-cms-field`, `data-cms-image`, and `data-cms-btn`. 
+  - Double-clicking text (`data-cms-field`) sets `contentEditable="true"`, allowing live on-page rich-text typing.
+  - Clicking images (`data-cms-image`) opens a file picker, which reads the file via `FileReader` and converts the image to a Base64 string.
+- Updating Content: When the admin clicks "Save", all these overrides are packaged into a massive JSON payload and saved to `localStorage` under a specific key (e.g., `sedco_cms_home`). 
+- Production Reflection: On the live production `index.html`, `js/cms-loader.js` runs instantly on load, reads this JSON from local storage, and surgically injects the innerHTML, Base64 image sources, and styles into the DOM seamlessly.
+
+6. Log System
+--------------------------------------------------------------------------------
+The application utilizes an advanced database-backed Audit Logging system orchestrated within `admin.js`.
+- Mechanism: A central helper function `logAction(action, entityType, entityId, description, metadata)` is invoked across the dashboard whenever a state-mutating event occurs (e.g., deleting a product, assigning a role, confirming an order, or logging in).
+- Storage: These structured events are inserted directly into the `admin_logs` table in Supabase.
+- Reading & UI: The admin panel features a dedicated "System Logs" view that fetches these logs with server-side pagination. It includes text search functionality and dropdown filters by Action (Create, Update, Delete) and Entity Type (Product, Order, Session). Clicking a log entry opens a detailed modal showing exact timestamps, user emails, and a formatted view of the JSON metadata.
+
+7. Code Editor (page_editor)
+--------------------------------------------------------------------------------
+The admin dashboard contains a custom-built embedded IDE for raw code manipulation.
+- Construction: Inside `admin.js`, the `renderPageEditor()` function creates an interface with two modes: Visual Edit (which embeds the `_for_edit` files in an iframe) and Code Edit.
+- Logic & Dependencies: The Code Editor uses standard `fetch()` API calls to read the raw `.html`, `.css`, and `.js` files from the server. It places the text into a styled `<textarea>` equipped with custom javascript logic to handle line-numbering, tab indentation, and cursor tracking. No heavy third-party editor libraries (like Monaco or CodeMirror) are used.
+- Storage Integration: When the code is modified and saved, the raw string data is written back to `localStorage` (e.g., `sedco_code_home_html`). Because this is a static frontend without backend file-write access, the system prompts the admin to download the modified files locally (`downloadModifiedFiles()`) via dynamically generated Blob URLs, so they can be pushed to the live hosting environment.
+
+8. Connecting the Dots: System Harmony
+--------------------------------------------------------------------------------
+The Elsewedy SEDCO system is a brilliant amalgamation of Static-Site performance and Dynamic Backend functionality. Here is how they operate in harmony:
+
+1. The public user visits the static HTML files. The site loads near-instantly, while `cms-loader.js` applies any visual content overrides (text, images) stored by the marketing team from `localStorage`.
+2. The user views the 3D globe (Three.js), and sees live facility pins that were populated from the Admin's configured locations.
+3. The user views products in the marketplace and submits an inquiry via the Contact form (`contact.js`). Supabase OTP verifies their email securely, and inserts the message into the Supabase PostgreSQL database.
+4. A manager logs into `admin.html`. Supabase Auth verifies their identity, checks the `user_roles` table, and grants them access. 
+5. The manager views the contact inquiry, types a reply, and hits send. This triggers a secure Supabase Edge Function to dispatch the email via SMTP, while `logAction()` permanently records the interaction in the `admin_logs` table.
+6. A developer logs into the Admin panel, seamlessly switches to the Page Editor, modifies the raw CSS to tweak a layout, downloads the modified file, and deploys it—all while the underlying application continues running flawlessly without a traditional monolithic backend server.

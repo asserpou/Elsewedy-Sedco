@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visual Editor — About — Elsewedy SEDCO</title>
+  <meta name="description" content="WYSIWYG visual editor for the Elsewedy SEDCO About page." />
+  <link rel="icon" type="image/png" href="assets/Logo.png" />
+
+  <!-- Site styles -->
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/navbar.css" />
+  <link rel="stylesheet" href="css/footer.css" />
+  <link rel="stylesheet" href="css/about.css" />
+  <!-- Editor styles -->
+  <link rel="stylesheet" href="css/cms-editor.css" />
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body class="edit-mode">
+
+  <!-- ═══════ EDIT MODE BADGE ═══════ -->
+  <div class="edit-mode-badge">
+    <div class="pulse-dot"></div>
+    Edit Mode — About
+  </div>
+
+  <!-- ═══════ EDITOR TOOLBAR ═══════ -->
+  <div id="editor-toolbar">
+    <div class="etb-logo">
+      <div class="etb-logo-icon">S</div>
+      <span>Editor</span>
+    </div>
+
+    <button class="etb-btn" id="btn-preview" title="Preview the live site">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+      <span class="btn-label">Preview</span>
+    </button>
+
+    <div class="etb-divider"></div>
+
+    <button class="etb-btn style-btn" id="btn-style-panel" title="Open Style Panel">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" /></svg>
+      <span class="btn-label">Styles</span>
+    </button>
+
+    <div class="etb-divider"></div>
+
+    <button class="etb-btn save-btn" id="btn-save" title="Save all changes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" /></svg>
+      <span class="btn-label">Save Changes</span>
+    </button>
+
+    <button class="etb-btn reset-btn" id="btn-reset" title="Reset to original content">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" /></svg>
+      <span class="btn-label">Reset</span>
+    </button>
+
+    <div class="etb-divider"></div>
+    <div class="etb-status">
+      <div class="status-dot"></div>
+      <span id="save-status">Ready</span>
+    </div>
+  </div>
+
+  <!-- ═══════ HINT BAR ═══════ -->
+  <div id="editor-hint">
+    <span><kbd>Dbl-click</kbd> edit text</span>
+    <span><kbd>Click</kbd> button/link to customize</span>
+    <span><kbd>Click</kbd> image to replace</span>
+    <span><kbd>Esc</kbd> finish editing</span>
+  </div>
+
+  <input type="file" id="cms-file-input" accept="image/*" />
+  <div id="cms-toast"></div>
+
+  <!-- Rich Text Toolbar -->
+  <div id="rich-toolbar">
+    <button class="rt-btn" data-cmd="bold" title="Bold (Ctrl+B)"><b>B</b></button>
+    <button class="rt-btn" data-cmd="italic" title="Italic (Ctrl+I)"><i>I</i></button>
+    <button class="rt-btn" data-cmd="underline" title="Underline (Ctrl+U)"><u>U</u></button>
+    <button class="rt-btn" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
+    <div class="rt-sep"></div>
+    <select class="rt-size-select" id="rt-font-size" title="Font Size">
+      <option value="">Size</option>
+      <option value="1">10px</option>
+      <option value="2">13px</option>
+      <option value="3">16px</option>
+      <option value="4">18px</option>
+      <option value="5">24px</option>
+      <option value="6">32px</option>
+      <option value="7">48px</option>
+    </select>
+    <div class="rt-sep"></div>
+    <div class="rt-color-wrap" title="Text Color">
+      <input type="color" id="rt-text-color" value="#ffffff" />
+      <span class="rt-color-icon">A</span>
+      <div class="rt-color-bar" id="rt-color-bar" style="background:#ffffff"></div>
+    </div>
+    <div class="rt-color-wrap" title="Highlight Color">
+      <input type="color" id="rt-bg-color" value="#ffff00" />
+      <span class="rt-color-icon" style="background: rgba(255,255,0,0.3); border-radius:3px; padding:0 2px;">A</span>
+      <div class="rt-color-bar" style="background:#ffff00"></div>
+    </div>
+    <div class="rt-sep"></div>
+    <button class="rt-btn" data-cmd="removeFormat" title="Clear Formatting">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 10L3 10"/><path d="M21 6L3 6"/><path d="M21 14L3 14"/><path d="M17 18L3 18"/></svg>
+    </button>
+  </div>
+
+
+  <!-- ═══════ STYLE PANEL ═══════ -->
+  <div id="style-panel">
+    <div class="sp-header">
+      <h3>🎨 Style Customizer</h3>
+      <p>Edit colors &amp; font sizes. Saves with page content.</p>
+    </div>
+    <div class="sp-section">
+      <div class="sp-section-title">Page Hero</div>
+      <div class="sp-row">
+        <span class="sp-label">Subtitle Color</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#c0c0c8"><input type="color" value="#c0c0c8" data-token="--hero-subtitle-color" /></div>
+          <span class="sp-color-hex">#c0c0c8</span>
+        </div>
+      </div>
+    </div>
+    <div class="sp-section">
+      <div class="sp-section-title">Section Headings</div>
+      <div class="sp-row">
+        <span class="sp-label">Heading Color</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#0f172a"><input type="color" value="#0f172a" data-token="--section-heading-color" /></div>
+          <span class="sp-color-hex">#0f172a</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Label / Accent</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#E32636"><input type="color" value="#E32636" data-token="--section-label-color" /></div>
+          <span class="sp-color-hex">#E32636</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Heading Size</span>
+        <div class="sp-slider-wrap">
+          <input type="range" class="sp-slider" min="18" max="52" value="36" data-token="--section-heading-size" data-unit="px" />
+          <span class="sp-slider-val">36px</span>
+        </div>
+      </div>
+    </div>
+    <div class="sp-section">
+      <div class="sp-section-title">Navigation Bar</div>
+      <div class="sp-row">
+        <span class="sp-label">Link Color</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#cccccc"><input type="color" value="#cccccc" data-token="--nav-link-color" /></div>
+          <span class="sp-color-hex">#cccccc</span>
+        </div>
+      </div>
+    </div>
+    <div class="sp-section">
+      <div class="sp-section-title">Footer</div>
+      <div class="sp-row">
+        <span class="sp-label">Heading Color</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#ffffff"><input type="color" value="#ffffff" data-token="--footer-heading-color" /></div>
+          <span class="sp-color-hex">#ffffff</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Body Text Color</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#888899"><input type="color" value="#888899" data-token="--footer-text-color" /></div>
+          <span class="sp-color-hex">#888899</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Link Color</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#888899"><input type="color" value="#888899" data-token="--footer-link-color" /></div>
+          <span class="sp-color-hex">#888899</span>
+        </div>
+      </div>
+    </div>
+    <div class="sp-section">
+      <div class="sp-section-title">Button Colors (Individual)</div>
+      <div class="sp-row">
+        <span class="sp-label">Nav CTA BG</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#E32636"><input type="color" value="#E32636" data-token="--btn-nav-cta-bg" /></div>
+          <span class="sp-color-hex">#E32636</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Nav CTA Text</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#ffffff"><input type="color" value="#ffffff" data-token="--btn-nav-cta-text" /></div>
+          <span class="sp-color-hex">#ffffff</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Footer Start BG</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#E32636"><input type="color" value="#E32636" data-token="--btn-footer-start-bg" /></div>
+          <span class="sp-color-hex">#E32636</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Button Edit Popover -->
+  <div id="btn-popover">
+    <button class="bpop-close" id="bpop-close-btn">×</button>
+    <div class="bpop-title">🎨 Edit Button</div>
+    <div class="bpop-row"><div class="bpop-label">Button Text</div><input type="text" class="bpop-input" id="bpop-text-input" placeholder="Button label…" /></div>
+    <div class="bpop-row">
+      <div class="bpop-label">Colors</div>
+      <div class="bpop-colors">
+        <div class="bpop-color-item"><div class="bpop-color-label">Background</div><div class="bpop-color-swatch" id="bpop-bg-swatch" style="background:#E32636"><input type="color" id="bpop-bg-color" value="#E32636" /></div></div>
+        <div class="bpop-color-item"><div class="bpop-color-label">Text</div><div class="bpop-color-swatch" id="bpop-text-swatch" style="background:#ffffff"><input type="color" id="bpop-text-color" value="#ffffff" /></div></div>
+      </div>
+    </div>
+    <button class="bpop-apply" id="bpop-apply-btn">Apply Changes</button>
+  </div>
+
+  <!-- Link Edit Popover -->
+  <div id="link-popover">
+    <button class="bpop-close" id="lpop-close-btn">×</button>
+    <div class="bpop-title">🔗 Edit Link</div>
+    <div class="bpop-row"><div class="bpop-label">Link Text</div><input type="text" class="bpop-input" id="lpop-text-input" placeholder="Link label…" /></div>
+    <div class="bpop-row"><div class="bpop-label">URL / href</div><input type="text" class="bpop-input" id="lpop-href-input" placeholder="https://… or page.html" /></div>
+    <button class="bpop-apply" id="lpop-apply-btn">Apply Link</button>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════════════════════
+       ACTUAL WEBSITE CONTENT — ABOUT PAGE
+       ════════════════════════════════════════════════════════════════ -->
+
+  <nav class="navbar">
+    <div class="section-container nav-inner">
+      <a href="index_for_edit.html" class="nav-logo">
+        <div class="logo-bg">
+          <img src="assets/Logo.gif" alt="Elsewedy SEDCO">
+        </div>
+      </a>
+      <div class="nav-links">
+        <a href="index_for_edit.html" data-cms-link="nav.home" data-cms-tooltip="Click to edit link">Home<span class="underline"></span></a>
+        <a href="about_for_edit.html" class="active" data-cms-link="nav.about" data-cms-tooltip="Click to edit link">About<span class="underline"></span></a>
+        <a href="solutions_for_edit.html" data-cms-link="nav.solutions" data-cms-tooltip="Click to edit link">Solutions<span class="underline"></span></a>
+        <a href="marketplace_for_edit.html" data-cms-link="nav.marketplace" data-cms-tooltip="Click to edit link">Marketplace<span class="underline"></span></a>
+        <a href="contact_for_edit.html" class="nav-cta" data-cms-btn="nav.cta" data-cms-tooltip="Click to edit button">Contact Us</a>
+      </div>
+      <button class="mobile-toggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+    </div>
+    <div class="mobile-menu section-container">
+      <a href="index_for_edit.html" data-cms-link="mob.nav.home">Home</a>
+      <a href="about_for_edit.html" data-cms-link="mob.nav.about">About</a>
+      <a href="solutions_for_edit.html" data-cms-link="mob.nav.solutions">Solutions</a>
+      <a href="marketplace_for_edit.html" data-cms-link="mob.nav.marketplace">Marketplace</a>
+      <a href="contact_for_edit.html" class="mobile-cta" data-cms-btn="mob.nav.cta">Contact Us</a>
+    </div>
+  </nav>
+
+  <section class="page-hero about-hero">
+    <div class="hero-image" data-cms-image="about.heroBg" data-cms-tooltip="Click to replace">
+      <img src="assets/images/about-hero-bg.png" alt="About Us Background" style="width:100%;height:100%;object-fit:cover;">
+      <div class="overlay"></div>
+      <div class="cms-img-overlay">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span>Replace</span>
+      </div>
+    </div>
+    <div class="line-left"></div>
+    <div class="line-right"></div>
+    <div class="radial-glow"></div>
+    <div class="bottom-fade"></div>
+    <div class="content" style="margin-top: 30px;">
+      <div class="section-label center light animate-in delay-1">
+        <div class="line"></div>
+        <span data-cms-field="about.heroLabel" data-cms-tooltip="Dbl-click to edit">About Us</span>
+      </div>
+      <h1 class="animate-in delay-2" data-cms-field="about.heroTitle" data-cms-tooltip="Dbl-click to edit">Building Tomorrow's<br><span class="gradient-text">Energy Infrastructure</span></h1>
+      <p class="subtitle animate-in delay-3" data-cms-field="about.heroSubtitle" data-cms-tooltip="Dbl-click to edit">35+ years of engineering excellence, delivering innovative solutions across the petroleum and electrical sectors.</p>
+    </div>
+  </section>
+
+  <section class="who-we-are">
+    <div class="section-container who-we-are-grid">
+      <div class="who-image reveal" data-cms-image="about.corpImage" data-cms-tooltip="Click to replace">
+        <img src="assets/images/about-corporate.png" alt="Corporate" style="width:100%;height:100%;object-fit:cover;">
+        <div class="overlay"></div>
+        <div class="corner-accent"></div>
+        <div class="cms-img-overlay">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span>Replace</span>
+        </div>
+      </div>
+      <div class="reveal" data-delay="0.2">
+        <div class="section-label">
+          <div class="line"></div>
+          <span data-cms-field="about.storyLabel" data-cms-tooltip="Dbl-click to edit">Our Story</span>
+        </div>
+        <h2 class="who-title" data-cms-field="about.storyTitle" data-cms-tooltip="Dbl-click to edit">A Legacy of <span>Engineering Excellence</span></h2>
+        <p class="who-text" data-cms-field="about.storyText1" data-cms-tooltip="Dbl-click to edit">Founded in 1985, Elsewedy SEDCO has grown from a regional service provider into one of the most trusted names in the petroleum and electrical services industry. Our commitment to quality, safety, and innovation has driven our expansion across 15+ countries.</p>
+        <p class="who-text" data-cms-field="about.storyText2" data-cms-tooltip="Dbl-click to edit">We combine decades of field experience with cutting-edge technology to deliver comprehensive solutions that meet the evolving needs of the energy sector.</p>
+
+        <div class="stats-grid" style="margin-top:32px;">
+          <div class="stat-box">
+            <div class="value" data-cms-field="about.stat1val" data-cms-tooltip="Dbl-click to edit">35+</div>
+            <div class="label" data-cms-field="about.stat1lbl" data-cms-tooltip="Dbl-click to edit">Years of Experience</div>
+          </div>
+          <div class="stat-box">
+            <div class="value" data-cms-field="about.stat2val" data-cms-tooltip="Dbl-click to edit">2,000+</div>
+            <div class="label" data-cms-field="about.stat2lbl" data-cms-tooltip="Dbl-click to edit">Team Members</div>
+          </div>
+          <div class="stat-box">
+            <div class="value" data-cms-field="about.stat3val" data-cms-tooltip="Dbl-click to edit">500+</div>
+            <div class="label" data-cms-field="about.stat3lbl" data-cms-tooltip="Dbl-click to edit">Projects Completed</div>
+          </div>
+          <div class="stat-box">
+            <div class="value" data-cms-field="about.stat4val" data-cms-tooltip="Dbl-click to edit">15+</div>
+            <div class="label" data-cms-field="about.stat4lbl" data-cms-tooltip="Dbl-click to edit">Countries Served</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="global-presence-section" id="global-presence">
+    <div class="gp-grid-bg"></div>
+    <div class="gp-radial-glow"></div>
+    <div class="section-container global-presence-grid">
+      <div class="global-presence-text reveal from-left">
+        <div class="gp-glass-card">
+          <div class="section-label light">
+            <div class="line"></div>
+            <span data-cms-field="about.globalLabel" data-cms-tooltip="Dbl-click to edit">Global Presence</span>
+          </div>
+          <h2 class="gp-title" data-cms-field="about.globalTitle" data-cms-tooltip="Dbl-click to edit">Powering Progress<br><span>Across Continents</span></h2>
+          <p class="gp-desc" data-cms-field="about.globalDesc" data-cms-tooltip="Dbl-click to edit">With operations spanning <strong>19 countries</strong> and exports reaching over <strong>110 nations</strong> worldwide, Elsewedy SEDCO delivers energy solutions that power communities and industries across the globe.</p>
+
+          <div class="gp-stats">
+            <div class="gp-stat">
+              <div class="gp-stat-value" data-count="28" data-cms-field="about.globalStat1Val" data-cms-tooltip="Dbl-click to edit">28</div>
+              <div class="gp-stat-label" data-cms-field="about.globalStat1Lbl" data-cms-tooltip="Dbl-click to edit">Production<br>Facilities</div>
+            </div>
+            <div class="gp-stat">
+              <div class="gp-stat-value" data-count="19" data-cms-field="about.globalStat2Val" data-cms-tooltip="Dbl-click to edit">19</div>
+              <div class="gp-stat-label" data-cms-field="about.globalStat2Lbl" data-cms-tooltip="Dbl-click to edit">Operation<br>Countries</div>
+            </div>
+            <div class="gp-stat">
+              <div class="gp-stat-value" data-count="110" data-cms-field="about.globalStat3Val" data-cms-tooltip="Dbl-click to edit">110</div>
+              <div class="gp-stat-label" data-cms-field="about.globalStat3Lbl" data-cms-tooltip="Dbl-click to edit">Exporting<br>Countries</div>
+            </div>
+          </div>
+
+          <div class="gp-legend">
+            <div class="gp-legend-item"><span class="gp-dot gp-dot--hq"></span><span data-cms-field="about.globalLegend1" data-cms-tooltip="Dbl-click to edit">Headquarters</span></div>
+            <div class="gp-legend-item"><span class="gp-dot gp-dot--prod"></span><span data-cms-field="about.globalLegend2" data-cms-tooltip="Dbl-click to edit">Production</span></div>
+            <div class="gp-legend-item"><span class="gp-dot gp-dot--ops"></span><span data-cms-field="about.globalLegend3" data-cms-tooltip="Dbl-click to edit">Operations</span></div>
+            <div class="gp-legend-item"><span class="gp-dot gp-dot--exp"></span><span data-cms-field="about.globalLegend4" data-cms-tooltip="Dbl-click to edit">Export</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="global-presence-globe reveal from-right" data-delay="0.2">
+        <div id="globe-container"></div>
+        <p class="gp-interact-hint" data-cms-field="about.globalHint" data-cms-tooltip="Dbl-click to edit">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 15l-2 5L9 9l11 4-5 2z"/><path d="M18.75 18.75L12 12"/></svg>
+          Click &amp; drag to explore
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="purpose-section">
+    <div class="deco-tr"></div>
+    <div class="deco-bl"></div>
+    <div class="section-container">
+      <div class="purpose-header reveal">
+        <div class="section-label center">
+          <div class="line"></div>
+          <span data-cms-field="about.purposeLabel" data-cms-tooltip="Dbl-click to edit">Our Purpose</span>
+        </div>
+        <h2 data-cms-field="about.purposeTitle" data-cms-tooltip="Dbl-click to edit">Driven by Purpose, Guided by Values</h2>
+      </div>
+
+      <div class="purpose-cards">
+        <div class="about-purpose-card-mission reveal group" data-delay="0.1">
+          <div class="about-mission-line"></div>
+          <div class="about-mission-icon">
+             <i data-lucide="target" style="width:26px;height:26px;" class="purpose-icon-svg" data-cms-icon="about.missionIcon" data-cms-tooltip="Dbl-click to change icon"></i>
+          </div>
+          <h3 class="about-purpose-card-title" style="color:var(--brand-dark); font-weight:700; font-size:1.5rem; margin-bottom:16px;" data-cms-field="about.missionTitle" data-cms-tooltip="Dbl-click to edit">Our Mission</h3>
+          <p class="about-mission-text" style="color:#666666; font-size:0.95rem; line-height:1.7; flex:1;" data-cms-field="about.missionText" data-cms-tooltip="Dbl-click to edit">To deliver innovative, reliable, and sustainable petroleum and electrical solutions that exceed client expectations while maintaining the highest standards of safety, quality, and environmental responsibility.</p>
+          <div class="about-mission-corner"></div>
+        </div>
+        <div class="about-purpose-card-vision reveal group" data-delay="0.2">
+          <div class="about-vision-line"></div>
+          <div class="about-vision-icon">
+             <i data-lucide="eye" style="width:26px;height:26px;" class="purpose-icon-svg" data-cms-icon="about.visionIcon" data-cms-tooltip="Dbl-click to change icon"></i>
+          </div>
+          <h3 class="about-purpose-card-title" style="color:white; font-weight:700; font-size:1.5rem; margin-bottom:16px;" data-cms-field="about.visionTitle" data-cms-tooltip="Dbl-click to edit">Our Vision</h3>
+          <p class="about-vision-text" style="color:rgba(255, 255, 255, 0.55); font-size:0.95rem; line-height:1.7; flex:1;" data-cms-field="about.visionText" data-cms-tooltip="Dbl-click to edit">To be the leading integrated energy services provider in the MENA region, recognized for our technical expertise, operational excellence, and commitment to powering a sustainable future.</p>
+          <div class="about-vision-corner"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="relative overflow-hidden" style="background: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 100%); padding: 80px 0;">
+
+      <div class="section-container relative z-10 text-center" style="position:relative; z-index:10; text-align:center;">
+          <div class="scroll-reveal reveal">
+              <div style="display:inline-flex; align-items:center; justify-content:center; width:56px; height:56px; background:rgba(139,26,26,0.15); border-radius:14px; margin-bottom:24px;">
+                  <svg style="width:28px;height:28px;color:#cc1b1b;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0" /></svg>
+              </div>
+              <h2 class="font-heading font-bold" style="font-size:clamp(1.6rem,3vw,2.4rem); letter-spacing:-0.02em; margin-bottom:16px; color:white;" data-cms-field="about.certTitle" data-cms-tooltip="Dbl-click to edit">
+                  Commitment to <span style="color:#cc1b1b;">Quality &amp; Safety</span>
+              </h2>
+              <p style="max-width:580px; margin:0 auto 40px; color:rgba(255,255,255,0.45); font-size:1rem; line-height:1.7;" data-cms-field="about.certDesc" data-cms-tooltip="Dbl-click to edit">
+                  Our operations are backed by internationally recognized certifications, ensuring that every project meets the highest standards of quality, safety, and environmental stewardship.
+              </p>
+              <div id="about-certs-container" style="display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-bottom:12px;"></div>
+          </div>
+      </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="footer-accent-top"></div>
+    <div class="section-container" style="padding-top:64px;padding-bottom:48px;">
+      <div class="footer-cta reveal">
+        <h2 data-cms-field="footer.ctaTitle" data-cms-tooltip="Dbl-click to edit">Ready to <span>Transform</span> Your Operations?</h2>
+        <p data-cms-field="footer.ctaDesc" data-cms-tooltip="Dbl-click to edit">Partner with us for innovative petroleum and electrical solutions that drive efficiency, safety, and sustainable growth.</p>
+        <div class="footer-cta-buttons">
+          <a href="contact.html" class="btn-primary footer-btn" data-cms-btn="footer.ctaBtn1" data-cms-tooltip="Click to edit button">Get Started <i data-lucide="arrow-right" style="width:16px;height:16px;"></i></a>
+          <a href="solutions.html" class="btn-outline" data-cms-btn="footer.ctaBtn2" data-cms-tooltip="Click to edit button" style="border-color:rgba(255,255,255,0.15);">View Solutions</a>
+        </div>
+      </div>
+      <div class="footer-divider" style="margin-top:48px;"></div>
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="index_for_edit.html" class="nav-logo" style="display:inline-block; text-decoration:none;">
+            <div class="logo-bg">
+              <img src="assets/Logo.gif" alt="Elsewedy SEDCO">
+            </div>
+          </a>
+          <p style="margin-top:12px;" data-cms-field="footer.brandText" data-cms-tooltip="Dbl-click to edit">Leading provider of integrated petroleum and electrical services across the MENA region.</p>
+        </div>
+        <div class="footer-section">
+          <h4 data-cms-field="footer.servicesHeading" data-cms-tooltip="Dbl-click to edit">Services</h4>
+          <ul>
+            <li><a href="solutions_for_edit.html" data-cms-link="footer.link1" data-cms-tooltip="Click to edit link">Petroleum Services</a></li>
+            <li><a href="solutions_for_edit.html" data-cms-link="footer.link2" data-cms-tooltip="Click to edit link">Electrical Systems</a></li>
+            <li><a href="solutions_for_edit.html" data-cms-link="footer.link3" data-cms-tooltip="Click to edit link">Instrumentation</a></li>
+            <li><a href="marketplace_for_edit.html" data-cms-link="footer.link4" data-cms-tooltip="Click to edit link">Marketplace</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4 data-cms-field="footer.companyHeading" data-cms-tooltip="Dbl-click to edit">Company</h4>
+          <ul>
+            <li><a href="about_for_edit.html" data-cms-link="footer.link5" data-cms-tooltip="Click to edit link">About Us</a></li>
+            <li><a href="contact_for_edit.html" data-cms-link="footer.link6" data-cms-tooltip="Click to edit link">Contact</a></li>
+          </ul>
+        </div>
+        <div class="footer-section footer-contact">
+          <h4 data-cms-field="footer.contactHeading" data-cms-tooltip="Dbl-click to edit">Contact</h4>
+          <ul>
+            <li><i data-lucide="map-pin" style="width:16px;height:16px;" data-cms-icon="footer.iconMapPin" data-cms-tooltip="Dbl-click to change icon"></i><span data-cms-field="footer.address" data-cms-tooltip="Dbl-click to edit">Cairo, Egypt</span></li>
+            <li><i data-lucide="phone" style="width:16px;height:16px;" data-cms-icon="footer.iconPhone" data-cms-tooltip="Dbl-click to change icon"></i><span data-cms-field="footer.phone" data-cms-tooltip="Dbl-click to edit">+20 2 2345 6789</span></li>
+            <li><i data-lucide="mail" style="width:16px;height:16px;" data-cms-icon="footer.iconMail" data-cms-tooltip="Dbl-click to change icon"></i><span data-cms-field="footer.email" data-cms-tooltip="Dbl-click to edit">info@elsewedysedco.com</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p data-cms-field="footer.copyright" data-cms-tooltip="Dbl-click to edit">© 2024 Elsewedy SEDCO. All rights reserved.</p>
+        <div class="footer-bottom-links">
+          <a href="#" data-cms-link="footer.privacy" data-cms-tooltip="Click to edit link">Privacy Policy</a>
+          <a href="#" data-cms-link="footer.terms" data-cms-tooltip="Click to edit link">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Site scripts -->
+  <script src="js/navbar.js?v=1.1.0"></script>
+  <script src="js/animations.js"></script>
+  <script src="js/globe-data.js"></script>
+  <script type="module" src="js/globe.js"></script>
+  <!-- lucide icons rendered by cms-editor.js -->
+
+  <!-- CMS Engine -->
+  <script>
+    window.CMS_PAGE_KEY = 'about';
+    window.CMS_PAGE_NAME = 'About';
+    window.CMS_PREVIEW_PAGE = 'about.html';
+    window.CMS_DEFAULT_CARDS = [];
+  </script>
+  <script src="js/about-certs.js"></script>
+  <script src="js/cms-editor.js?v=1.3.0"></script>
+  <script>
+    (function () {
+      function updateGlobeStats() {
+        if (!window.GLOBE_DATA || typeof window.GLOBE_DATA.get !== 'function') return;
+        var counts = { production: 0, operation: 0, export: 0 };
+        window.GLOBE_DATA.get().forEach(function (location) {
+          if (counts[location.type] !== undefined) counts[location.type] += 1;
+        });
+        [
+          ['about.globalStat1Val', counts.production],
+          ['about.globalStat2Val', counts.operation],
+          ['about.globalStat3Val', counts.export]
+        ].forEach(function (item) {
+          var el = document.querySelector('[data-cms-field="' + item[0] + '"]');
+          if (!el) return;
+          el.dataset.count = String(item[1]);
+          el.textContent = String(item[1]);
+        });
+      }
+
+      function scheduleGlobeStatsUpdate() {
+        [0, 250, 1000].forEach(function (delay) { setTimeout(updateGlobeStats, delay); });
+      }
+
+      document.addEventListener('DOMContentLoaded', scheduleGlobeStatsUpdate);
+      window.addEventListener('load', updateGlobeStats);
+    })();
+  </script>
+  <script src="js/auth-session.js"></script>
+</body>
+
+</html>

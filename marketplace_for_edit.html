@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visual Editor — Marketplace — Elsewedy SEDCO</title>
+  <meta name="description"
+    content="WYSIWYG visual editor for the Elsewedy SEDCO marketplace page. Edit product cards, images, text, and styles in place." />
+  <link rel="icon" type="image/png" href="assets/Logo.png" />
+
+  <!-- Load site styles exactly as marketplace.html does -->
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/navbar.css" />
+  <link rel="stylesheet" href="css/footer.css" />
+  <link rel="stylesheet" href="css/marketplace.css" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/cms-editor.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body class="edit-mode">
+
+  <!-- ═══════ EDIT MODE BADGE ═══════ -->
+  <div class="edit-mode-badge">
+    <div class="pulse-dot"></div>
+    Edit Mode — Marketplace
+  </div>
+
+  <!-- ═══════ EDITOR TOOLBAR ═══════ -->
+  <div id="editor-toolbar">
+    <div class="etb-logo">
+      <div class="etb-logo-icon">S</div>
+      <span>Marketplace Editor</span>
+    </div>
+
+    <button class="etb-btn" id="btn-preview" title="Preview the live site">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+        <circle cx="12" cy="12" r="3" />
+      </svg>
+      <span class="btn-label">Preview</span>
+    </button>
+
+    <div class="etb-divider"></div>
+
+    <button class="etb-btn style-btn" id="btn-style-panel" title="Open Style Panel — colors & font sizes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3" />
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" />
+      </svg>
+      <span class="btn-label">Styles</span>
+    </button>
+
+    <div class="etb-divider"></div>
+
+    <button class="etb-btn save-btn" id="btn-save" title="Save all changes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+        <polyline points="17 21 17 13 7 13 7 21" />
+        <polyline points="7 3 7 8 15 8" />
+      </svg>
+      <span class="btn-label">Save Changes</span>
+    </button>
+
+    <button class="etb-btn reset-btn" id="btn-reset" title="Reset to original content">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <polyline points="1 4 1 10 7 10" />
+        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+      </svg>
+      <span class="btn-label">Reset</span>
+    </button>
+
+    <div class="etb-divider"></div>
+    <div class="etb-status">
+      <div class="status-dot"></div>
+      <span id="save-status">Ready</span>
+    </div>
+  </div>
+
+  <!-- ═══════ HINT BAR ═══════ -->
+  <div id="editor-hint">
+    <span><kbd>Dbl-click</kbd> edit text</span>
+    <span><kbd>Click</kbd> button/link to customize</span>
+    <span><kbd>Click</kbd> image to replace</span>
+    <span><kbd>Esc</kbd> finish editing</span>
+  </div>
+
+  <input type="file" id="cms-file-input" accept="image/*" />
+  <div id="cms-toast"></div>
+
+
+  <!-- ══════════════════════════════════════════════════════════════
+       RICH TEXT FORMATTING TOOLBAR
+       ══════════════════════════════════════════════════════════════ -->
+  <div id="rich-toolbar">
+    <button class="rt-btn" data-cmd="bold" title="Bold (Ctrl+B)"><b>B</b></button>
+    <button class="rt-btn" data-cmd="italic" title="Italic (Ctrl+I)"><i>I</i></button>
+    <button class="rt-btn" data-cmd="underline" title="Underline (Ctrl+U)"><u>U</u></button>
+    <button class="rt-btn" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
+    <div class="rt-sep"></div>
+    <select class="rt-size-select" id="rt-font-size" title="Font Size">
+      <option value="">Size</option>
+      <option value="1">10px</option>
+      <option value="2">13px</option>
+      <option value="3">16px</option>
+      <option value="4">18px</option>
+      <option value="5">24px</option>
+      <option value="6">32px</option>
+      <option value="7">48px</option>
+    </select>
+    <div class="rt-sep"></div>
+    <div class="rt-color-wrap" title="Text Color">
+      <input type="color" id="rt-text-color" value="#ffffff" />
+      <span class="rt-color-icon">A</span>
+      <div class="rt-color-bar" id="rt-color-bar" style="background:#ffffff"></div>
+    </div>
+    <div class="rt-color-wrap" title="Highlight Color">
+      <input type="color" id="rt-bg-color" value="#ffff00" />
+      <span class="rt-color-icon" style="background: rgba(255,255,0,0.3); border-radius:3px; padding:0 2px;">A</span>
+      <div class="rt-color-bar" style="background:#ffff00"></div>
+    </div>
+    <div class="rt-sep"></div>
+    <button class="rt-btn" data-cmd="removeFormat" title="Clear Formatting">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2"><path d="M17 10L3 10"/><path d="M21 6L3 6"/><path d="M21 14L3 14"/><path d="M17 18L3 18"/></svg>
+    </button>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════════
+       STYLE PANEL
+       ══════════════════════════════════════════════════════════════ -->
+  <div id="style-panel">
+    <div class="sp-header">
+      <h3>🎨 Marketplace Styles</h3>
+      <p>Edit colors &amp; font sizes for the marketplace page.</p>
+    </div>
+
+    <!-- Hero -->
+    <div class="sp-section">
+      <div class="sp-section-title">Hero Section</div>
+      <div class="sp-row">
+        <span class="sp-label">Title Color</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#ffffff">
+            <input type="color" value="#ffffff" data-token="--hero-title-color" />
+          </div>
+          <span class="sp-color-hex">#ffffff</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Subtitle Color</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#c0c0c8">
+            <input type="color" value="#c0c0c8" data-token="--hero-subtitle-color" />
+          </div>
+          <span class="sp-color-hex">#c0c0c8</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Product Cards -->
+    <div class="sp-section">
+      <div class="sp-section-title">Product Cards</div>
+      <div class="sp-row">
+        <span class="sp-label">Card Title Color</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#1a1a1a">
+            <input type="color" value="#1a1a1a" data-token="--card-title-color" />
+          </div>
+          <span class="sp-color-hex">#1a1a1a</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Card Spec Color</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#666666">
+            <input type="color" value="#666666" data-token="--card-desc-color" />
+          </div>
+          <span class="sp-color-hex">#666666</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Card BG Color</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#ffffff">
+            <input type="color" value="#ffffff" data-token="--card-bg-color" />
+          </div>
+          <span class="sp-color-hex">#ffffff</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Card Border Color</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#e2e8f0">
+            <input type="color" value="#e2e8f0" data-token="--card-border-color" />
+          </div>
+          <span class="sp-color-hex">#e2e8f0</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Badge BG Color</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#8B1A1A">
+            <input type="color" value="#8B1A1A" data-token="--mp-badge-bg" />
+          </div>
+          <span class="sp-color-hex">#8B1A1A</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Badge Text Color</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#ffffff">
+            <input type="color" value="#ffffff" data-token="--mp-badge-text" />
+          </div>
+          <span class="sp-color-hex">#ffffff</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Card Link Color</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#E32636">
+            <input type="color" value="#E32636" data-token="--card-link-color" />
+          </div>
+          <span class="sp-color-hex">#E32636</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Title Size</span>
+        <div class="sp-slider-wrap">
+          <input type="range" class="sp-slider" min="12" max="24" value="15" data-token="--card-title-size"
+            data-unit="px" />
+          <span class="sp-slider-val">15px</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Spec Size</span>
+        <div class="sp-slider-wrap">
+          <input type="range" class="sp-slider" min="10" max="18" value="13" data-token="--card-desc-size"
+            data-unit="px" />
+          <span class="sp-slider-val">13px</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════════
+       BUTTON EDIT POPOVER
+       ══════════════════════════════════════════════════════════════ -->
+  <div id="btn-popover">
+    <button class="bpop-close" id="bpop-close-btn">×</button>
+    <div class="bpop-title">🎨 Edit Button</div>
+    <div class="bpop-row">
+      <div class="bpop-label">Button Text</div>
+      <input type="text" class="bpop-input" id="bpop-text-input" placeholder="Button label…" />
+    </div>
+    <div class="bpop-row">
+      <div class="bpop-label">Colors</div>
+      <div class="bpop-colors">
+        <div class="bpop-color-item">
+          <div class="bpop-color-label">Background</div>
+          <div class="bpop-color-swatch" id="bpop-bg-swatch" style="background:#E32636">
+            <input type="color" id="bpop-bg-color" value="#E32636" />
+          </div>
+        </div>
+        <div class="bpop-color-item">
+          <div class="bpop-color-label">Text</div>
+          <div class="bpop-color-swatch" id="bpop-text-swatch" style="background:#ffffff">
+            <input type="color" id="bpop-text-color" value="#ffffff" />
+          </div>
+        </div>
+      </div>
+    </div>
+    <button class="bpop-apply" id="bpop-apply-btn">Apply Changes</button>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════════
+       LINK EDIT POPOVER
+       ══════════════════════════════════════════════════════════════ -->
+  <div id="link-popover">
+    <button class="bpop-close" id="lpop-close-btn">×</button>
+    <div class="bpop-title">🔗 Edit Link</div>
+    <div class="bpop-row">
+      <div class="bpop-label">Link Text</div>
+      <input type="text" class="bpop-input" id="lpop-text-input" placeholder="Link label…" />
+    </div>
+    <div class="bpop-row">
+      <div class="bpop-label">URL / href</div>
+      <input type="text" class="bpop-input" id="lpop-href-input" placeholder="https://… or page.html" />
+    </div>
+    <button class="bpop-apply" id="lpop-apply-btn">Apply Link</button>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════════
+       ADD PRODUCT CARD MODAL
+       ══════════════════════════════════════════════════════════════ -->
+  <div id="add-card-modal">
+    <div class="acm-box">
+      <h3>➕ Add Product Card</h3>
+      <div class="acm-label">Product Title *</div>
+      <input type="text" class="acm-input" id="acm-title" placeholder="e.g. Wellhead Assembly" />
+      <div class="acm-label">Spec / Description *</div>
+      <textarea class="acm-textarea" id="acm-desc" placeholder="Short spec line for this product…"></textarea>
+      <div class="acm-label">Card Image</div>
+      <div class="acm-img-upload" id="acm-img-upload">
+        <input type="file" id="acm-img-file" accept="image/*" style="display:none" />
+        <div class="acm-img-preview" id="acm-img-preview">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:32px;height:32px;opacity:0.5;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+          <span>Click to upload image</span>
+        </div>
+      </div>
+      <div class="acm-label">Category / Tag</div>
+      <div class="acm-icon-row" id="acm-icon-row">
+        <span class="acm-icon-chip selected" data-icon="Petroleum">🛢 Petroleum</span>
+        <span class="acm-icon-chip" data-icon="Electrical">⚡ Electrical</span>
+        <span class="acm-icon-chip" data-icon="Instrumentation">🔧 Instrumentation</span>
+        <span class="acm-icon-chip" data-icon="Safety">🛡 Safety</span>
+      </div>
+      <div class="acm-actions">
+        <button class="acm-btn-cancel" id="acm-cancel">Cancel</button>
+        <button class="acm-btn-add" id="acm-confirm">Add Card</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════════════════════
+       ACTUAL WEBSITE CONTENT — MARKETPLACE PAGE
+       ════════════════════════════════════════════════════════════════ -->
+
+  <!-- ═══════ NAVBAR ═══════ -->
+  <nav class="navbar">
+    <div class="section-container nav-inner">
+      <a href="index_for_edit.html" class="nav-logo">
+        <div class="logo-bg">
+          <img src="assets/Logo.gif" alt="Elsewedy SEDCO">
+        </div>
+      </a>
+      <div class="nav-links">
+        <a href="index_for_edit.html" data-cms-link="nav.home" data-cms-tooltip="Click to edit link">Home<span class="underline"></span></a>
+        <a href="about_for_edit.html" data-cms-link="nav.about" data-cms-tooltip="Click to edit link">About<span class="underline"></span></a>
+        <a href="solutions_for_edit.html" data-cms-link="nav.solutions" data-cms-tooltip="Click to edit link">Solutions<span class="underline"></span></a>
+        <a href="marketplace_for_edit.html" class="active" data-cms-link="nav.marketplace" data-cms-tooltip="Click to edit link">Marketplace<span class="underline"></span></a>
+        <a href="contact_for_edit.html" class="nav-cta" data-cms-btn="nav.cta" data-cms-tooltip="Click to edit button">Contact Us</a>
+      </div>
+      <button class="mobile-toggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="mobile-menu section-container">
+      <a href="index_for_edit.html" data-cms-link="mob.nav.home">Home</a>
+      <a href="about_for_edit.html" data-cms-link="mob.nav.about">About</a>
+      <a href="solutions_for_edit.html" data-cms-link="mob.nav.solutions">Solutions</a>
+      <a href="marketplace_for_edit.html" data-cms-link="mob.nav.marketplace">Marketplace</a>
+      <a href="contact_for_edit.html" class="mobile-cta" data-cms-btn="mob.nav.cta">Contact Us</a>
+    </div>
+  </nav>
+
+
+  <!-- ═══════ HERO ═══════ -->
+  <section class="page-hero">
+    <div class="hero-bg" data-cms-image="marketplace.hero.bg" data-cms-tooltip="Click to replace hero background">
+      <img src="assets/images/about-hero-bg.png" alt="Marketplace Background" style="width:100%;height:100%;object-fit:cover;">
+      <div class="overlay" style="position:absolute;inset:0;background:linear-gradient(135deg, rgba(15,15,15,0.85) 0%, rgba(26,26,26,0.75) 40%, rgba(31,16,16,0.85) 100%);"></div>
+      <div class="cms-img-overlay">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span>Replace background</span>
+      </div>
+    </div>
+    <div class="grid-pattern"></div>
+    <div class="accent-line-left"></div>
+    <div class="accent-line-right"></div>
+    <div class="radial-glow"></div>
+    <div class="bottom-fade"></div>
+    <div class="content">
+      <div class="section-label center light animate-in delay-1">
+        <div class="line"></div>
+        <span data-cms-field="marketplace.hero.label" data-cms-tooltip="Dbl-click to edit">Equipment &amp; Products</span>
+      </div>
+      <h1 class="animate-in delay-2">
+        <span data-cms-field="marketplace.hero.title" data-cms-tooltip="Dbl-click to edit title">Industrial </span>
+        <span class="gradient-text" data-cms-field="marketplace.hero.titleHighlight" data-cms-tooltip="Dbl-click to edit highlight">Marketplace</span>
+      </h1>
+      <p class="subtitle animate-in delay-3" data-cms-field="marketplace.hero.subtitle" data-cms-tooltip="Dbl-click to edit subtitle">Premium equipment, tools, and components for petroleum and electrical operations.</p>
+    </div>
+  </section>
+
+
+  <!-- ═══════ FILTER SECTION ═══════ -->
+  <section class="filter-section">
+    <div class="section-container">
+      <div class="filter-bar reveal">
+        <div class="tag-filters">
+          <i data-lucide="filter" style="width:16px;height:16px;"></i>
+          <button class="tag-btn active" data-tag="All">All</button>
+          <button class="tag-btn" data-tag="Petroleum">Petroleum</button>
+          <button class="tag-btn" data-tag="Electrical">Electrical</button>
+          <button class="tag-btn" data-tag="Instrumentation">Instrumentation</button>
+          <button class="tag-btn" data-tag="Safety">Safety</button>
+        </div>
+        <div class="search-box">
+          <i data-lucide="search" style="width:16px;height:16px;"></i>
+          <input type="text" id="product-search" placeholder="Search products..." />
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════ PRODUCTS SECTION — Dynamic Card Management ═══════ -->
+  <section class="products-section">
+    <div class="section-container">
+      <!-- ★ Card grid — cards are managed by cms-editor.js Card Manager -->
+      <div class="products-grid" id="categories-grid">
+        <!-- Cards injected by CMS engine -->
+      </div>
+
+      <!-- ★ Add Card button — only visible in edit mode -->
+      <button id="add-card-btn" style="display:none; margin-top:24px;">＋ Add New Product Card</button>
+
+      <div class="no-results" style="display:none;">
+        <p>No products found matching your criteria.</p>
+      </div>
+
+      <div class="products-footer reveal">
+        <div class="info-item">
+          <i data-lucide="package" style="width:16px;height:16px;"></i>
+          <span data-cms-field="marketplace.footer.info1" data-cms-tooltip="Dbl-click to edit">All products include warranty and technical support</span>
+        </div>
+        <div class="info-item">
+          <i data-lucide="truck" style="width:16px;height:16px;"></i>
+          <span data-cms-field="marketplace.footer.info2" data-cms-tooltip="Dbl-click to edit">Delivery across MENA region</span>
+        </div>
+        <div class="info-item">
+          <i data-lucide="shield-check" style="width:16px;height:16px;"></i>
+          <span data-cms-field="marketplace.footer.info3" data-cms-tooltip="Dbl-click to edit">Quality certified equipment</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════ FOOTER ═══════ -->
+  <footer class="site-footer">
+    <div class="footer-accent-top"></div>
+    <div class="section-container" style="padding-top:64px;padding-bottom:48px;">
+      <div class="footer-cta reveal">
+        <h2 data-cms-field="footer.ctaTitle" data-cms-tooltip="Dbl-click to edit CTA title">Ready to
+          <span>Transform</span> Your Operations?
+        </h2>
+        <p data-cms-field="footer.ctaText" data-cms-tooltip="Dbl-click to edit CTA text">Partner with us for innovative
+          petroleum and electrical solutions that drive efficiency, safety, and sustainable growth.</p>
+        <div class="footer-cta-buttons">
+          <a href="contact.html" class="btn-primary" data-cms-btn="footer.ctaBtn1"
+            data-cms-tooltip="Click to edit button">Get Started <i data-lucide="arrow-right"
+              style="width:16px;height:16px;"></i></a>
+          <a href="solutions.html" class="btn-outline" style="border-color:rgba(255,255,255,0.15);"
+            data-cms-btn="footer.ctaBtn2" data-cms-tooltip="Click to edit button">View Solutions</a>
+        </div>
+      </div>
+      <div class="footer-divider" style="margin-top:48px;"></div>
+      <div class="footer-grid">
+          <a href="index_for_edit.html" class="nav-logo" style="display:inline-block; text-decoration:none;">
+            <div class="logo-bg">
+              <img src="assets/Logo.gif" alt="Elsewedy SEDCO">
+            </div>
+          </a>
+          <p style="margin-top:12px;" data-cms-field="footer.brandText" data-cms-tooltip="Dbl-click to edit">Leading
+            provider of integrated petroleum and electrical services across the MENA region.</p>
+        </div>
+        <div class="footer-section">
+          <h4 data-cms-field="footer.servicesHeading" data-cms-tooltip="Dbl-click to edit">Services</h4>
+          <ul>
+            <li><a href="solutions_for_edit.html" data-cms-link="footer.link1" data-cms-tooltip="Click to edit link">Petroleum Services</a></li>
+            <li><a href="solutions_for_edit.html" data-cms-link="footer.link2" data-cms-tooltip="Click to edit link">Electrical Systems</a></li>
+            <li><a href="solutions_for_edit.html" data-cms-link="footer.link3" data-cms-tooltip="Click to edit link">Instrumentation</a></li>
+            <li><a href="marketplace_for_edit.html" data-cms-link="footer.link4" data-cms-tooltip="Click to edit link">Marketplace</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4 data-cms-field="footer.companyHeading" data-cms-tooltip="Dbl-click to edit">Company</h4>
+          <ul>
+            <li><a href="about_for_edit.html" data-cms-link="footer.link5" data-cms-tooltip="Click to edit link">About Us</a></li>
+            <li><a href="contact_for_edit.html" data-cms-link="footer.link6" data-cms-tooltip="Click to edit link">Contact</a></li>
+          </ul>
+        </div>
+        <div class="footer-section footer-contact">
+          <h4 data-cms-field="footer.contactHeading" data-cms-tooltip="Dbl-click to edit">Contact</h4>
+          <ul>
+            <li><i data-lucide="map-pin" data-cms-icon="footer.icon1" data-cms-tooltip="Dbl-click to edit icon" style="width:16px;height:16px;"></i><span data-cms-field="footer.address" data-cms-tooltip="Dbl-click to edit">Cairo, Egypt</span></li>
+            <li><i data-lucide="phone" data-cms-icon="footer.icon2" data-cms-tooltip="Dbl-click to edit icon" style="width:16px;height:16px;"></i><span data-cms-field="footer.phone" data-cms-tooltip="Dbl-click to edit">+20 2 2345 6789</span></li>
+            <li><i data-lucide="mail" data-cms-icon="footer.icon3" data-cms-tooltip="Dbl-click to edit icon" style="width:16px;height:16px;"></i><span data-cms-field="footer.email" data-cms-tooltip="Dbl-click to edit">info@elsewedysedco.com</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p data-cms-field="footer.copyright" data-cms-tooltip="Dbl-click to edit">© 2024 Elsewedy SEDCO. All rights reserved.</p>
+        <div class="footer-bottom-links">
+          <a href="#" data-cms-link="footer.privacy" data-cms-tooltip="Click to edit link">Privacy Policy</a>
+          <a href="#" data-cms-link="footer.terms" data-cms-tooltip="Click to edit link">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Site scripts -->
+  <script src="js/navbar.js?v=1.1.0"></script>
+  <script src="js/animations.js"></script>
+
+  <!-- CMS EDITOR ENGINE -->
+  <script>
+    window.CMS_PAGE_KEY = 'marketplace';
+    window.CMS_PAGE_NAME = 'Marketplace';
+    window.CMS_PREVIEW_PAGE = 'marketplace.html';
+    window.CMS_CARD_TEMPLATE = 'marketplace';
+    window.CMS_DEFAULT_CARDS = [
+      { id: 'mp0', num: '01', title: 'Wellhead Assembly', desc: 'API 6A certified, pressure ratings up to 15,000 PSI', img: 'assets/images/product-explosion-proof.png', tag: 'Petroleum' }
+    ];
+  </script>
+  <script src="js/cms-editor.js?v=1.3.0"></script>
+  <script src="js/marketplace-modal.js"></script>
+  <script src="js/auth-session.js"></script>
+
+  <!-- Re-bind marketplace filtering after CMS renders cards -->
+  <script>
+    (function () {
+      function filterProducts() {
+        var cards = document.querySelectorAll('.product-card');
+        var activeTag = document.querySelector('.tag-btn.active');
+        var searchInput = document.getElementById('product-search');
+        var tag = activeTag ? activeTag.getAttribute('data-tag') : 'All';
+        var search = searchInput ? searchInput.value.toLowerCase() : '';
+        var visibleCount = 0;
+
+        cards.forEach(function(card) {
+          var cardTag = card.getAttribute('data-tag') || '';
+          var cardTitle = (card.getAttribute('data-title') || '').toLowerCase();
+          var cardSpec = (card.getAttribute('data-spec') || '').toLowerCase();
+          var matchTag = tag === 'All' || cardTag === tag;
+          var matchSearch = !search || cardTitle.includes(search) || cardSpec.includes(search);
+
+          if (matchTag && matchSearch) {
+            card.style.display = 'flex';
+            visibleCount++;
+          } else {
+            card.style.display = 'none';
+          }
+        });
+
+        var noResults = document.querySelector('.no-results');
+        if (noResults) {
+          noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+        }
+      }
+
+      function bindMarketplaceFilters() {
+        document.querySelectorAll('.tag-btn').forEach(function(btn) {
+          if (btn.dataset.filterBound === '1') return;
+          btn.dataset.filterBound = '1';
+          btn.addEventListener('click', function() {
+            document.querySelectorAll('.tag-btn').forEach(function(b) { b.classList.remove('active'); });
+            this.classList.add('active');
+            filterProducts();
+          });
+        });
+
+        var searchInput = document.getElementById('product-search');
+        if (searchInput && searchInput.dataset.filterBound !== '1') {
+          searchInput.dataset.filterBound = '1';
+          searchInput.addEventListener('input', filterProducts);
+        }
+
+        filterProducts();
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(bindMarketplaceFilters, 250);
+      });
+
+      document.addEventListener('cms:cards-rendered', function(event) {
+        if (event.detail && event.detail.pageKey === 'marketplace') {
+          bindMarketplaceFilters();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

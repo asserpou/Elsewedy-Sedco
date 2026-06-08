@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-cms-field="about.heroLabel">About Us — Elsewedy SEDCO</title>
+  <meta name="description"
+    content="Learn about Elsewedy SEDCO's 35+ year legacy in petroleum and electrical services across the MENA region." />
+  <link rel="icon" type="image/png" href="assets/Logo.png" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/navbar.css" />
+  <link rel="stylesheet" href="css/footer.css" />
+  <link rel="stylesheet" href="css/about.css" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+
+  <!-- Shared Navbar (injected by shared-components.js) -->
+  <div id="shared-navbar"></div>
+
+  <section class="page-hero about-hero">
+    <div class="hero-image" data-cms-image="about.heroBg">
+      <img src="assets/images/about-hero-bg.png" alt="About Us Background"
+        style="width:100%;height:100%;object-fit:cover;">
+      <div class="overlay"></div>
+    </div>
+    <div class="line-left"></div>
+    <div class="line-right"></div>
+    <div class="radial-glow"></div>
+    <div class="bottom-fade"></div>
+    <div class="content" style="margin-top: 30px;">
+      <div class="section-label center light animate-in delay-1">
+        <div class="line"></div>
+        <span data-cms-field="about.heroLabel">About Us</span>
+      </div>
+      <h1 class="animate-in delay-2" data-cms-field="about.heroTitle">Building Tomorrow's<br><span class="gradient-text">Energy Infrastructure</span>
+      </h1>
+      <p class="subtitle animate-in delay-3" data-cms-field="about.heroSubtitle">35+ years of engineering excellence, delivering innovative solutions across
+        the petroleum and electrical sectors.</p>
+    </div>
+  </section>
+
+  <section class="who-we-are">
+    <div class="section-container who-we-are-grid">
+      <div class="who-image reveal" data-cms-image="about.corpImage">
+        <img src="assets/images/about-corporate.png" alt="Corporate" style="width:100%;height:100%;object-fit:cover;">
+        <div class="overlay"></div>
+        <div class="corner-accent"></div>
+      </div>
+      <div class="reveal" data-delay="0.2">
+        <div class="section-label">
+          <div class="line"></div>
+          <span data-cms-field="about.storyLabel">Our Story</span>
+        </div>
+        <h2 class="who-title" data-cms-field="about.storyTitle">A Legacy of <span>Engineering Excellence</span></h2>
+        <p class="who-text" data-cms-field="about.storyText1">Founded in 1985, Elsewedy SEDCO has grown from a regional service provider into one of the
+          most trusted names in the petroleum and electrical services industry. Our commitment to quality, safety, and
+          innovation has driven our expansion across 15+ countries.</p>
+        <p class="who-text" data-cms-field="about.storyText2">We combine decades of field experience with cutting-edge technology to deliver comprehensive
+          solutions that meet the evolving needs of the energy sector.</p>
+
+        <div class="stats-grid" style="margin-top:32px;">
+          <div class="stat-box">
+            <div class="value" data-cms-field="about.stat1val">35+</div>
+            <div class="label" data-cms-field="about.stat1lbl">Years of Experience</div>
+          </div>
+          <div class="stat-box">
+            <div class="value" data-cms-field="about.stat2val">2,000+</div>
+            <div class="label" data-cms-field="about.stat2lbl">Team Members</div>
+          </div>
+          <div class="stat-box">
+            <div class="value" data-cms-field="about.stat3val">500+</div>
+            <div class="label" data-cms-field="about.stat3lbl">Projects Completed</div>
+          </div>
+          <div class="stat-box">
+            <div class="value" data-cms-field="about.stat4val">15+</div>
+            <div class="label" data-cms-field="about.stat4lbl">Countries Served</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Global Presence — Interactive 3D Globe ═══ -->
+  <section class="global-presence-section" id="global-presence">
+    <div class="gp-grid-bg"></div>
+    <div class="gp-radial-glow"></div>
+    <div class="section-container global-presence-grid">
+
+      <!-- ── Text Column ── -->
+      <div class="global-presence-text reveal from-left">
+        <div class="gp-glass-card">
+          <div class="section-label light">
+            <div class="line"></div>
+            <span data-cms-field="about.globalLabel">Global Presence</span>
+          </div>
+          <h2 class="gp-title" data-cms-field="about.globalTitle">Powering Progress<br><span>Across Continents</span></h2>
+          <p class="gp-desc" data-cms-field="about.globalDesc">With operations spanning <strong>19 countries</strong> and exports reaching over <strong>110 nations</strong> worldwide, Elsewedy SEDCO delivers energy solutions that power communities and industries across the globe.</p>
+
+          <div class="gp-stats">
+            <div class="gp-stat">
+              <div class="gp-stat-value" data-count="28" data-cms-field="about.globalStat1Val">28</div>
+              <div class="gp-stat-label" data-cms-field="about.globalStat1Lbl">Production<br>Facilities</div>
+            </div>
+            <div class="gp-stat">
+              <div class="gp-stat-value" data-count="19" data-cms-field="about.globalStat2Val">19</div>
+              <div class="gp-stat-label" data-cms-field="about.globalStat2Lbl">Operation<br>Countries</div>
+            </div>
+            <div class="gp-stat">
+              <div class="gp-stat-value" data-count="110" data-cms-field="about.globalStat3Val">110</div>
+              <div class="gp-stat-label" data-cms-field="about.globalStat3Lbl">Exporting<br>Countries</div>
+            </div>
+          </div>
+
+          <div class="gp-legend">
+            <div class="gp-legend-item"><span class="gp-dot gp-dot--hq"></span><span data-cms-field="about.globalLegend1">Headquarters</span></div>
+            <div class="gp-legend-item"><span class="gp-dot gp-dot--prod"></span><span data-cms-field="about.globalLegend2">Production</span></div>
+            <div class="gp-legend-item"><span class="gp-dot gp-dot--ops"></span><span data-cms-field="about.globalLegend3">Operations</span></div>
+            <div class="gp-legend-item"><span class="gp-dot gp-dot--exp"></span><span data-cms-field="about.globalLegend4">Export</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Globe Column ── -->
+      <div class="global-presence-globe reveal from-right" data-delay="0.2">
+        <div id="globe-container"></div>
+        <p class="gp-interact-hint" data-cms-field="about.globalHint">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 15l-2 5L9 9l11 4-5 2z"/><path d="M18.75 18.75L12 12"/></svg>
+          Click &amp; drag to explore
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="purpose-section">
+    <div class="deco-tr"></div>
+    <div class="deco-bl"></div>
+    <div class="section-container">
+      <div class="purpose-header reveal">
+        <div class="section-label center">
+          <div class="line"></div>
+          <span data-cms-field="about.purposeLabel">Our Purpose</span>
+        </div>
+        <h2 data-cms-field="about.purposeTitle">Driven by Purpose, Guided by Values</h2>
+      </div>
+
+      <div class="purpose-cards">
+        <div class="about-purpose-card-mission reveal group" data-delay="0.1">
+          <div class="about-mission-line"></div>
+          <div class="about-mission-icon">
+             <i data-lucide="target" style="width:26px;height:26px;" class="purpose-icon-svg" data-cms-icon="about.missionIcon"></i>
+          </div>
+          <h3 class="about-purpose-card-title" style="color:var(--brand-dark); font-weight:700; font-size:1.5rem; margin-bottom:16px;" data-cms-field="about.missionTitle">Our Mission</h3>
+          <p class="about-mission-text" style="color:#666666; font-size:0.95rem; line-height:1.7; flex:1;" data-cms-field="about.missionText">To deliver innovative, reliable, and sustainable petroleum and electrical solutions that exceed client
+            expectations while maintaining the highest standards of safety, quality, and environmental responsibility.
+          </p>
+          <div class="about-mission-corner"></div>
+        </div>
+        <div class="about-purpose-card-vision reveal group" data-delay="0.2">
+          <div class="about-vision-line"></div>
+          <div class="about-vision-icon">
+             <i data-lucide="eye" style="width:26px;height:26px;" class="purpose-icon-svg" data-cms-icon="about.visionIcon"></i>
+          </div>
+          <h3 class="about-purpose-card-title" style="color:white; font-weight:700; font-size:1.5rem; margin-bottom:16px;" data-cms-field="about.visionTitle">Our Vision</h3>
+          <p class="about-vision-text" style="color:rgba(255, 255, 255, 0.55); font-size:0.95rem; line-height:1.7; flex:1;" data-cms-field="about.visionText">To be the leading integrated energy services provider in the MENA region, recognized for our technical
+            expertise, operational excellence, and commitment to powering a sustainable future.</p>
+          <div class="about-vision-corner"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="relative overflow-hidden"
+      style="background: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 100%); padding: 80px 0;">
+      <div class="absolute inset-0"
+          style="position:absolute; top:0; left:0; right:0; bottom:0; opacity:0.03; background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.8) 1px, transparent 0); background-size: 40px 40px;">
+      </div>
+      <div class="section-container relative z-10 text-center" style="position:relative; z-index:10; text-align:center;">
+          <div class="scroll-reveal reveal">
+              <div
+                  style="display:inline-flex; align-items:center; justify-content:center; width:56px; height:56px; background:rgba(139,26,26,0.15); border-radius:14px; margin-bottom:24px;">
+                  <svg style="width:28px;height:28px;color:#cc1b1b;" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor" stroke-width="1.5">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0" />
+                  </svg>
+              </div>
+              <h2 class="font-heading font-bold"
+                  style="font-size:clamp(1.6rem,3vw,2.4rem); letter-spacing:-0.02em; margin-bottom:16px; color:white;" data-cms-field="about.certTitle">
+                  Commitment to <span style="color:#cc1b1b;">Quality &amp; Safety</span>
+              </h2>
+              <p
+                  style="max-width:580px; margin:0 auto 40px; color:rgba(255,255,255,0.45); font-size:1rem; line-height:1.7;" data-cms-field="about.certDesc">
+                  Our operations are backed by internationally recognized certifications, ensuring that
+                  every project meets the highest standards of quality, safety, and environmental
+                  stewardship.
+              </p>
+              <div id="about-certs-container" style="display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-bottom:12px;"></div>
+          </div>
+      </div>
+  </section>
+
+  <!-- Shared Footer + CTA (injected by shared-components.js) -->
+  <div id="shared-footer"></div>
+
+  <script src="js/shared-components.js"></script>
+  <script src="js/navbar.js?v=1.1.0"></script>
+  <script src="js/animations.js"></script>
+  <script src="js/globe-data.js"></script>
+  <script type="module" src="js/globe.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', function () { lucide.createIcons(); });</script>
+  <script src="js/about-certs.js"></script>
+  <script src="js/cms-loader.js"></script>
+  <script>
+    (function () {
+      function updateGlobeStats() {
+        if (!window.GLOBE_DATA || typeof window.GLOBE_DATA.get !== 'function') return;
+        var counts = { production: 0, operation: 0, export: 0 };
+        window.GLOBE_DATA.get().forEach(function (location) {
+          if (counts[location.type] !== undefined) counts[location.type] += 1;
+        });
+        [
+          ['about.globalStat1Val', counts.production],
+          ['about.globalStat2Val', counts.operation],
+          ['about.globalStat3Val', counts.export]
+        ].forEach(function (item) {
+          var el = document.querySelector('[data-cms-field="' + item[0] + '"]');
+          if (!el) return;
+          el.dataset.count = String(item[1]);
+          el.textContent = String(item[1]);
+        });
+      }
+
+      function scheduleGlobeStatsUpdate() {
+        [0, 250, 1000].forEach(function (delay) { setTimeout(updateGlobeStats, delay); });
+      }
+
+      document.addEventListener('DOMContentLoaded', scheduleGlobeStatsUpdate);
+      window.addEventListener('load', updateGlobeStats);
+    })();
+  </script>
+  <script src="js/auth-session.js"></script>
+</body>
+
+</html>

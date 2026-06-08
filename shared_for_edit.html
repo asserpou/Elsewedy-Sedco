@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visual Editor — Shared Layout — Elsewedy SEDCO</title>
+  <meta name="description" content="Edit shared Navbar, CTA, and Footer sections that appear across all pages." />
+  <link rel="icon" type="image/png" href="assets/Logo.png" />
+
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/navbar.css" />
+  <link rel="stylesheet" href="css/footer.css" />
+  <link rel="stylesheet" href="css/cms-editor.css" />
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body class="edit-mode" style="background:#0f0f0f;">
+
+  <!-- ═══════ EDIT MODE BADGE ═══════ -->
+  <div class="edit-mode-badge"><div class="pulse-dot"></div>Edit Mode — Shared Layout</div>
+
+  <!-- ═══════ EDITOR TOOLBAR ═══════ -->
+  <div id="editor-toolbar">
+    <div class="etb-logo"><div class="etb-logo-icon">S</div><span>Shared Editor</span></div>
+    <button class="etb-btn" id="btn-preview" title="Preview the live site">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+      <span class="btn-label">Preview</span>
+    </button>
+    <div class="etb-divider"></div>
+    <button class="etb-btn save-btn" id="btn-save" title="Save all changes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" /></svg>
+      <span class="btn-label">Save Changes</span>
+    </button>
+    <button class="etb-btn reset-btn" id="btn-reset" title="Reset to original content">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" /></svg>
+      <span class="btn-label">Reset</span>
+    </button>
+    <div class="etb-divider"></div>
+    <div class="etb-status"><div class="status-dot"></div><span id="save-status">Ready</span></div>
+  </div>
+
+  <div id="editor-hint">
+    <span><kbd>Dbl-click</kbd> edit text</span>
+    <span><kbd>Click</kbd> button/link to customize</span>
+    <span><kbd>Esc</kbd> finish editing</span>
+  </div>
+
+  <input type="file" id="cms-file-input" accept="image/*" />
+  <div id="cms-toast"></div>
+
+  <!-- Rich Text Toolbar -->
+  <div id="rich-toolbar">
+    <button class="rt-btn" data-cmd="bold" title="Bold"><b>B</b></button>
+    <button class="rt-btn" data-cmd="italic" title="Italic"><i>I</i></button>
+    <button class="rt-btn" data-cmd="underline" title="Underline"><u>U</u></button>
+    <button class="rt-btn" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
+    <div class="rt-sep"></div>
+    <select class="rt-size-select" id="rt-font-size" title="Font Size">
+      <option value="">Size</option><option value="1">10px</option><option value="2">13px</option><option value="3">16px</option><option value="4">18px</option><option value="5">24px</option><option value="6">32px</option><option value="7">48px</option>
+    </select>
+    <div class="rt-sep"></div>
+    <div class="rt-color-wrap" title="Text Color"><input type="color" id="rt-text-color" value="#ffffff" /><span class="rt-color-icon">A</span><div class="rt-color-bar" id="rt-color-bar" style="background:#ffffff"></div></div>
+    <div class="rt-color-wrap" title="Highlight Color"><input type="color" id="rt-bg-color" value="#ffff00" /><span class="rt-color-icon" style="background:rgba(255,255,0,0.3);border-radius:3px;padding:0 2px;">A</span><div class="rt-color-bar" style="background:#ffff00"></div></div>
+    <div class="rt-sep"></div>
+    <button class="rt-btn" data-cmd="removeFormat" title="Clear Formatting"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 10L3 10"/><path d="M21 6L3 6"/><path d="M21 14L3 14"/><path d="M17 18L3 18"/></svg></button>
+  </div>
+
+  <!-- Popovers -->
+  <div id="btn-popover">
+    <button class="bpop-close" id="bpop-close-btn">×</button>
+    <div class="bpop-title">🎨 Edit Button</div>
+    <div class="bpop-row"><div class="bpop-label">Button Text</div><input type="text" class="bpop-input" id="bpop-text-input" placeholder="Button label…" /></div>
+    <div class="bpop-row"><div class="bpop-label">Colors</div><div class="bpop-colors"><div class="bpop-color-item"><div class="bpop-color-label">Background</div><div class="bpop-color-swatch" id="bpop-bg-swatch" style="background:#E32636"><input type="color" id="bpop-bg-color" value="#E32636" /></div></div><div class="bpop-color-item"><div class="bpop-color-label">Text</div><div class="bpop-color-swatch" id="bpop-text-swatch" style="background:#ffffff"><input type="color" id="bpop-text-color" value="#ffffff" /></div></div></div></div>
+    <button class="bpop-apply" id="bpop-apply-btn">Apply Changes</button>
+  </div>
+  <div id="link-popover">
+    <button class="bpop-close" id="lpop-close-btn">×</button>
+    <div class="bpop-title">🔗 Edit Link</div>
+    <div class="bpop-row"><div class="bpop-label">Link Text</div><input type="text" class="bpop-input" id="lpop-text-input" placeholder="Link label…" /></div>
+    <div class="bpop-row"><div class="bpop-label">URL / href</div><input type="text" class="bpop-input" id="lpop-href-input" placeholder="https://… or page.html" /></div>
+    <button class="bpop-apply" id="lpop-apply-btn">Apply Link</button>
+  </div>
+
+  <!-- Style Panel (minimal for shared) -->
+  <div id="style-panel">
+    <div class="sp-header"><h3>🎨 Shared Styles</h3><p>Colors for shared sections.</p></div>
+    <div class="sp-section">
+      <div class="sp-section-title">Navigation Bar</div>
+      <div class="sp-row"><span class="sp-label">Link Color</span><div class="sp-color-wrap"><div class="sp-color-swatch" style="background:#cccccc"><input type="color" value="#cccccc" data-token="--nav-link-color" /></div><span class="sp-color-hex">#cccccc</span></div></div>
+    </div>
+    <div class="sp-section">
+      <div class="sp-section-title">Footer</div>
+      <div class="sp-row"><span class="sp-label">Heading Color</span><div class="sp-color-wrap"><div class="sp-color-swatch" style="background:#ffffff"><input type="color" value="#ffffff" data-token="--footer-heading-color" /></div><span class="sp-color-hex">#ffffff</span></div></div>
+      <div class="sp-row"><span class="sp-label">Body Text</span><div class="sp-color-wrap"><div class="sp-color-swatch" style="background:#888899"><input type="color" value="#888899" data-token="--footer-text-color" /></div><span class="sp-color-hex">#888899</span></div></div>
+      <div class="sp-row"><span class="sp-label">Link Color</span><div class="sp-color-wrap"><div class="sp-color-swatch" style="background:#888899"><input type="color" value="#888899" data-token="--footer-link-color" /></div><span class="sp-color-hex">#888899</span></div></div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════════════════════
+       SECTION 1: NAVBAR — Editable
+       ════════════════════════════════════════════════════════════════ -->
+  <div style="margin-bottom:32px; padding:12px 0; text-align:center; background:linear-gradient(135deg, rgba(227,38,54,0.12), transparent); border-bottom:1px solid rgba(227,38,54,0.2);">
+    <span style="font-size:11px; text-transform:uppercase; letter-spacing:2px; color:#E32636; font-weight:700;">Section 1 — Navbar</span>
+  </div>
+
+  <nav class="navbar" style="position:relative;">
+    <div class="section-container nav-inner">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-bg">
+          <img src="assets/Logo.gif" alt="Elsewedy SEDCO">
+        </div>
+      </a>
+      <div class="nav-links">
+        <a href="index.html" class="active" data-cms-link="shared.nav.home" data-cms-tooltip="Click to edit link">Home<span class="underline"></span></a>
+        <a href="about.html" data-cms-link="shared.nav.about" data-cms-tooltip="Click to edit link">About<span class="underline"></span></a>
+        <a href="solutions.html" data-cms-link="shared.nav.solutions" data-cms-tooltip="Click to edit link">Solutions<span class="underline"></span></a>
+        <a href="marketplace.html" data-cms-link="shared.nav.marketplace" data-cms-tooltip="Click to edit link">Marketplace<span class="underline"></span></a>
+        <a href="contact.html" class="nav-cta" data-cms-btn="shared.nav.cta" data-cms-tooltip="Click to edit button">Contact Us</a>
+      </div>
+      <button class="mobile-toggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+    </div>
+    <div class="mobile-menu section-container">
+      <a href="index.html" data-cms-link="shared.mob.home">Home</a>
+      <a href="about.html" data-cms-link="shared.mob.about">About</a>
+      <a href="solutions.html" data-cms-link="shared.mob.solutions">Solutions</a>
+      <a href="marketplace.html" data-cms-link="shared.mob.marketplace">Marketplace</a>
+      <a href="contact.html" class="mobile-cta" data-cms-btn="shared.mob.cta">Contact Us</a>
+    </div>
+  </nav>
+
+
+  <!-- ════════════════════════════════════════════════════════════════
+       SECTION 2: CTA — "Ready to Transform"
+       ════════════════════════════════════════════════════════════════ -->
+  <div style="margin: 64px 0 32px; padding:12px 0; text-align:center; background:linear-gradient(135deg, rgba(227,38,54,0.12), transparent); border-bottom:1px solid rgba(227,38,54,0.2);">
+    <span style="font-size:11px; text-transform:uppercase; letter-spacing:2px; color:#E32636; font-weight:700;">Section 2 — Call to Action</span>
+  </div>
+
+  <div style="background: linear-gradient(180deg, #0a0a0a 0%, #0f0f0f 100%); padding: 64px 0;">
+    <div class="section-container">
+      <div class="footer-cta reveal">
+        <h2 data-cms-field="shared.cta.title" data-cms-tooltip="Dbl-click to edit CTA title">Ready to <span>Transform</span> Your Operations?</h2>
+        <p data-cms-field="shared.cta.text" data-cms-tooltip="Dbl-click to edit CTA text">Partner with us for innovative petroleum and electrical solutions that drive efficiency, safety, and sustainable growth.</p>
+        <div class="footer-cta-buttons">
+          <a href="contact.html" class="btn-primary footer-btn" data-cms-btn="shared.cta.btn1" data-cms-tooltip="Click to edit button">Get Started <i data-lucide="arrow-right" style="width:16px;height:16px;"></i></a>
+          <a href="solutions.html" class="btn-outline" style="border-color:rgba(255,255,255,0.15);" data-cms-btn="shared.cta.btn2" data-cms-tooltip="Click to edit button">View Solutions</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════════════════════
+       SECTION 3: FOOTER — Fully editable
+       ════════════════════════════════════════════════════════════════ -->
+  <div style="margin: 32px 0; padding:12px 0; text-align:center; background:linear-gradient(135deg, rgba(227,38,54,0.12), transparent); border-bottom:1px solid rgba(227,38,54,0.2);">
+    <span style="font-size:11px; text-transform:uppercase; letter-spacing:2px; color:#E32636; font-weight:700;">Section 3 — Footer</span>
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-accent-top"></div>
+    <div class="section-container" style="padding-top:64px;padding-bottom:48px;">
+      <div class="footer-divider"></div>
+      <div class="footer-grid">
+          <a href="index.html" class="nav-logo" style="display:inline-block; text-decoration:none;">
+            <div class="logo-bg">
+              <img src="assets/Logo.gif" alt="Elsewedy SEDCO">
+            </div>
+          </a>
+          <p style="margin-top:12px;" data-cms-field="shared.footer.brandText" data-cms-tooltip="Dbl-click to edit">Leading provider of integrated petroleum and electrical services across the MENA region.</p>
+        </div>
+        <div class="footer-section">
+          <h4 data-cms-field="shared.footer.servicesHeading" data-cms-tooltip="Dbl-click to edit">Services</h4>
+          <ul>
+            <li><a href="solutions.html" data-cms-link="shared.footer.link1" data-cms-tooltip="Click to edit link">Petroleum Services</a></li>
+            <li><a href="solutions.html" data-cms-link="shared.footer.link2" data-cms-tooltip="Click to edit link">Electrical Systems</a></li>
+            <li><a href="solutions.html" data-cms-link="shared.footer.link3" data-cms-tooltip="Click to edit link">Instrumentation</a></li>
+            <li><a href="marketplace.html" data-cms-link="shared.footer.link4" data-cms-tooltip="Click to edit link">Marketplace</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4 data-cms-field="shared.footer.companyHeading" data-cms-tooltip="Dbl-click to edit">Company</h4>
+          <ul>
+            <li><a href="about.html" data-cms-link="shared.footer.link5" data-cms-tooltip="Click to edit link">About Us</a></li>
+            <li><a href="contact.html" data-cms-link="shared.footer.link6" data-cms-tooltip="Click to edit link">Contact</a></li>
+          </ul>
+        </div>
+        <div class="footer-section footer-contact">
+          <h4 data-cms-field="shared.footer.contactHeading" data-cms-tooltip="Dbl-click to edit">Contact</h4>
+          <ul>
+            <li><i data-lucide="map-pin" data-cms-icon="shared.footer.icon1" data-cms-tooltip="Dbl-click to change icon" style="width:16px;height:16px;"></i><span data-cms-field="shared.footer.address" data-cms-tooltip="Dbl-click to edit">Cairo, Egypt</span></li>
+            <li><i data-lucide="phone" data-cms-icon="shared.footer.icon2" data-cms-tooltip="Dbl-click to change icon" style="width:16px;height:16px;"></i><span data-cms-field="shared.footer.phone" data-cms-tooltip="Dbl-click to edit">+20 2 2345 6789</span></li>
+            <li><i data-lucide="mail" data-cms-icon="shared.footer.icon3" data-cms-tooltip="Dbl-click to change icon" style="width:16px;height:16px;"></i><span data-cms-field="shared.footer.email" data-cms-tooltip="Dbl-click to edit">info@elsewedysedco.com</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p data-cms-field="shared.footer.copyright" data-cms-tooltip="Dbl-click to edit">© 2024 Elsewedy SEDCO. All rights reserved.</p>
+        <div class="footer-bottom-links">
+          <a href="#" data-cms-link="shared.footer.privacy" data-cms-tooltip="Click to edit link">Privacy Policy</a>
+          <a href="#" data-cms-link="shared.footer.terms" data-cms-tooltip="Click to edit link">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Site scripts -->
+  <script src="js/navbar.js?v=1.1.0"></script>
+  <script src="js/animations.js"></script>
+
+  <!-- CMS EDITOR ENGINE -->
+  <script>
+    window.CMS_PAGE_KEY = 'shared';
+    window.CMS_PREVIEW_PAGE = 'index.html';
+    window.CMS_DEFAULT_CARDS = [];
+  </script>
+  <script src="js/cms-editor.js?v=1.3.0"></script>
+  <script src="js/auth-session.js"></script>
+</body>
+</html>

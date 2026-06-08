@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Marketplace — Elsewedy SEDCO</title>
+  <meta name="description" content="Browse Elsewedy SEDCO's marketplace for premium petroleum and electrical equipment, tools, and components." />
+  <link rel="icon" type="image/png" href="assets/Logo.png" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/navbar.css" />
+  <link rel="stylesheet" href="css/footer.css" />
+  <link rel="stylesheet" href="css/marketplace.css" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    tailwind.config = {
+      corePlugins: {
+        preflight: false,
+      },
+      theme: {
+        extend: {
+          colors: {
+            'brand-red': '#E32636',
+            'brand-red-light': '#ff3b4b',
+            'brand-dark': '#1a1a1a',
+            'brand-gray-medium': '#666666'
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</head>
+<body>
+
+  <!-- Shared Navbar (injected by shared-components.js) -->
+  <div id="shared-navbar"></div>
+
+  <section class="page-hero">
+    <div class="hero-bg" data-cms-image="marketplace.hero.bg">
+      <img src="assets/images/about-hero-bg.png" alt="Marketplace Background" style="width:100%;height:100%;object-fit:cover;">
+      <div class="overlay" style="position:absolute;inset:0;background:linear-gradient(135deg, rgba(15,15,15,0.85) 0%, rgba(26,26,26,0.75) 40%, rgba(31,16,16,0.85) 100%);"></div>
+    </div>
+    <div class="grid-pattern"></div>
+    <div class="accent-line-left"></div>
+    <div class="accent-line-right"></div>
+    <div class="radial-glow"></div>
+    <div class="bottom-fade"></div>
+    <div class="content">
+      <div class="section-label center light animate-in delay-1">
+        <div class="line"></div>
+        <span data-cms-field="marketplace.hero.label">Equipment &amp; Products</span>
+      </div>
+      <h1 class="animate-in delay-2"><span data-cms-field="marketplace.hero.title">Industrial </span><span class="gradient-text" data-cms-field="marketplace.hero.titleHighlight">Marketplace</span></h1>
+      <p class="subtitle animate-in delay-3" data-cms-field="marketplace.hero.subtitle">Premium equipment, tools, and components for petroleum and electrical operations.</p>
+    </div>
+  </section>
+
+  <section class="filter-section">
+    <div class="section-container">
+      <div class="filter-bar reveal">
+        <div class="tag-filters">
+          <i data-lucide="filter" style="width:16px;height:16px;"></i>
+          <button class="tag-btn active" data-tag="All">All</button>
+          <button class="tag-btn" data-tag="Petroleum">Petroleum</button>
+          <button class="tag-btn" data-tag="Electrical">Electrical</button>
+          <button class="tag-btn" data-tag="Instrumentation">Instrumentation</button>
+          <button class="tag-btn" data-tag="Safety">Safety</button>
+        </div>
+        <div class="search-box">
+          <i data-lucide="search" style="width:16px;height:16px;"></i>
+          <input type="text" id="product-search" placeholder="Search products..." />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="products-section">
+    <div class="section-container">
+      <div class="products-grid">
+
+        <div class="product-card reveal" data-tag="Petroleum" data-title="Wellhead Assembly" data-spec="API 6A certified, pressure ratings up to 15,000 PSI">
+          <div class="card-image">
+            <img src="assets/images/product-explosion-proof.png" alt="Wellhead Assembly">
+            <div class="overlay"></div>
+            <span class="tag-badge">Petroleum</span>
+          </div>
+          <div class="card-content">
+            <h3>Wellhead Assembly</h3>
+            <p class="spec">API 6A certified, pressure ratings up to 15,000 PSI</p>
+            <span class="card-link">View Details <i data-lucide="arrow-right" style="width:12px;height:12px;"></i></span>
+          </div>
+          <div class="bottom-accent"></div>
+        </div>
+
+        <div class="product-card reveal" data-delay="0.05" data-tag="Electrical" data-title="Power Transformer" data-spec="High-efficiency distribution transformers, 10-100 MVA range">
+          <div class="card-image">
+            <img src="assets/images/product-cable-tray.png" alt="Power Transformer">
+            <div class="overlay"></div>
+            <span class="tag-badge">Electrical</span>
+          </div>
+          <div class="card-content">
+            <h3>Power Transformer</h3>
+            <p class="spec">High-efficiency distribution transformers, 10-100 MVA range</p>
+            <span class="card-link">View Details <i data-lucide="arrow-right" style="width:12px;height:12px;"></i></span>
+          </div>
+          <div class="bottom-accent"></div>
+        </div>
+
+        <div class="product-card reveal" data-delay="0.1" data-tag="Instrumentation" data-title="SCADA Controller" data-spec="Industrial-grade SCADA units with remote monitoring capability">
+          <div class="card-image">
+            <img src="assets/images/product-junction-box.png" alt="SCADA Controller">
+            <div class="overlay"></div>
+            <span class="tag-badge">Instrumentation</span>
+          </div>
+          <div class="card-content">
+            <h3>SCADA Controller</h3>
+            <p class="spec">Industrial-grade SCADA units with remote monitoring capability</p>
+            <span class="card-link">View Details <i data-lucide="arrow-right" style="width:12px;height:12px;"></i></span>
+          </div>
+          <div class="bottom-accent"></div>
+        </div>
+
+        <div class="product-card reveal" data-delay="0.15" data-tag="Safety" data-title="Fire & Gas Detection System" data-spec="SIL-2 rated detection systems for hazardous environments">
+          <div class="card-image">
+            <img src="assets/images/product-lightning.png" alt="Fire & Gas Detection System">
+            <div class="overlay"></div>
+            <span class="tag-badge">Safety</span>
+          </div>
+          <div class="card-content">
+            <h3>Fire & Gas Detection System</h3>
+            <p class="spec">SIL-2 rated detection systems for hazardous environments</p>
+            <span class="card-link">View Details <i data-lucide="arrow-right" style="width:12px;height:12px;"></i></span>
+          </div>
+          <div class="bottom-accent"></div>
+        </div>
+
+        <div class="product-card reveal" data-delay="0.2" data-tag="Petroleum" data-title="Downhole Tools" data-spec="Premium drilling and completion tools for demanding conditions">
+          <div class="card-image">
+            <img src="assets/images/product-cable-joints.png" alt="Downhole Tools">
+            <div class="overlay"></div>
+            <span class="tag-badge">Petroleum</span>
+          </div>
+          <div class="card-content">
+            <h3>Downhole Tools</h3>
+            <p class="spec">Premium drilling and completion tools for demanding conditions</p>
+            <span class="card-link">View Details <i data-lucide="arrow-right" style="width:12px;height:12px;"></i></span>
+          </div>
+          <div class="bottom-accent"></div>
+        </div>
+
+        <div class="product-card reveal" data-delay="0.25" data-tag="Electrical" data-title="Switchgear Panel" data-spec="Medium voltage switchgear panels, IEC 62271 compliant">
+          <div class="card-image">
+            <img src="assets/images/product-earthing.png" alt="Switchgear Panel">
+            <div class="overlay"></div>
+            <span class="tag-badge">Electrical</span>
+          </div>
+          <div class="card-content">
+            <h3>Switchgear Panel</h3>
+            <p class="spec">Medium voltage switchgear panels, IEC 62271 compliant</p>
+            <span class="card-link">View Details <i data-lucide="arrow-right" style="width:12px;height:12px;"></i></span>
+          </div>
+          <div class="bottom-accent"></div>
+        </div>
+
+        <div class="product-card reveal" data-delay="0.3" data-tag="Instrumentation" data-title="Pressure Transmitter" data-spec="High-accuracy pressure transmitters for process control">
+          <div class="card-image">
+            <img src="assets/images/product-cable-glands.png" alt="Pressure Transmitter">
+            <div class="overlay"></div>
+            <span class="tag-badge">Instrumentation</span>
+          </div>
+          <div class="card-content">
+            <h3>Pressure Transmitter</h3>
+            <p class="spec">High-accuracy pressure transmitters for process control</p>
+            <span class="card-link">View Details <i data-lucide="arrow-right" style="width:12px;height:12px;"></i></span>
+          </div>
+          <div class="bottom-accent"></div>
+        </div>
+
+        <div class="product-card reveal" data-delay="0.35" data-tag="Safety" data-title="PPE Equipment Kit" data-spec="Complete personal protective equipment sets, OSHA compliant">
+          <div class="card-image">
+            <img src="assets/images/solution-compliance.png" alt="PPE Equipment Kit">
+            <div class="overlay"></div>
+            <span class="tag-badge">Safety</span>
+          </div>
+          <div class="card-content">
+            <h3>PPE Equipment Kit</h3>
+            <p class="spec">Complete personal protective equipment sets, OSHA compliant</p>
+            <span class="card-link">View Details <i data-lucide="arrow-right" style="width:12px;height:12px;"></i></span>
+          </div>
+          <div class="bottom-accent"></div>
+        </div>
+
+      </div>
+
+      <div class="no-results" style="display:none;">
+        <p>No products found matching your criteria.</p>
+      </div>
+
+      <div class="products-footer reveal">
+        <div class="info-item">
+          <i data-lucide="package" style="width:16px;height:16px;"></i>
+          <span data-cms-field="marketplace.footer.info1">All products include warranty and technical support</span>
+        </div>
+        <div class="info-item">
+          <i data-lucide="truck" style="width:16px;height:16px;"></i>
+          <span data-cms-field="marketplace.footer.info2">Delivery across MENA region</span>
+        </div>
+        <div class="info-item">
+          <i data-lucide="shield-check" style="width:16px;height:16px;"></i>
+          <span data-cms-field="marketplace.footer.info3">Quality certified equipment</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Shared Footer + CTA (injected by shared-components.js) -->
+  <div id="shared-footer"></div>
+
+  <script src="js/shared-components.js"></script>
+  <script src="js/navbar.js?v=1.1.0"></script>
+  <script src="js/animations.js"></script>
+  <script src="js/marketplace.js"></script>
+  <script src="js/marketplace-modal.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', function() { lucide.createIcons(); });</script>
+  <script src="js/cms-loader.js"></script>
+  <script src="js/auth-session.js"></script>
+</body>
+</html>

@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visual Editor — Elsewedy SEDCO</title>
+  <meta name="description"
+    content="WYSIWYG visual editor for the Elsewedy SEDCO home page. Edit text, images, colors, buttons, and cards in place." />
+  <link rel="icon" type="image/png" href="assets/Logo.png" />
+
+  <!-- Load site styles exactly as index.html does -->
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/navbar.css" />
+  <link rel="stylesheet" href="css/footer.css" />
+  <link rel="stylesheet" href="css/home.css" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="css/cms-editor.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body class="edit-mode">
+
+  <!-- ═══════ EDIT MODE BADGE ═══════ -->
+  <div class="edit-mode-badge">
+    <div class="pulse-dot"></div>
+    Edit Mode
+  </div>
+
+  <!-- ═══════ EDITOR TOOLBAR ═══════ -->
+  <div id="editor-toolbar">
+    <div class="etb-logo">
+      <div class="etb-logo-icon">S</div>
+      <span>Editor</span>
+    </div>
+
+    <button class="etb-btn" id="btn-preview" title="Preview the live site">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+        <circle cx="12" cy="12" r="3" />
+      </svg>
+      <span class="btn-label">Preview</span>
+    </button>
+
+    <div class="etb-divider"></div>
+
+    <!-- ★ NEW: Style Panel Toggle -->
+    <button class="etb-btn style-btn" id="btn-style-panel" title="Open Style Panel — colors & font sizes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3" />
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" />
+      </svg>
+      <span class="btn-label">Styles</span>
+    </button>
+
+    <div class="etb-divider"></div>
+
+    <button class="etb-btn save-btn" id="btn-save" title="Save all changes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+        <polyline points="17 21 17 13 7 13 7 21" />
+        <polyline points="7 3 7 8 15 8" />
+      </svg>
+      <span class="btn-label">Save Changes</span>
+    </button>
+
+    <button class="etb-btn reset-btn" id="btn-reset" title="Reset to original content">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <polyline points="1 4 1 10 7 10" />
+        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+      </svg>
+      <span class="btn-label">Reset</span>
+    </button>
+
+    <div class="etb-divider"></div>
+    <div class="etb-status">
+      <div class="status-dot"></div>
+      <span id="save-status">Ready</span>
+    </div>
+  </div>
+
+  <!-- ═══════ HINT BAR ═══════ -->
+  <div id="editor-hint">
+    <span><kbd>Dbl-click</kbd> edit text</span>
+    <span><kbd>Click</kbd> button/link to customize</span>
+    <span><kbd>Click</kbd> image to replace</span>
+    <span><kbd>Esc</kbd> finish editing</span>
+  </div>
+
+  <input type="file" id="cms-file-input" accept="image/*" />
+  <div id="cms-toast"></div>
+
+
+  <!-- ══════════════════════════════════════════════════════════════
+       ❽  RICH TEXT FORMATTING TOOLBAR (like Word)
+       ══════════════════════════════════════════════════════════════ -->
+  <div id="rich-toolbar">
+    <button class="rt-btn" data-cmd="bold" title="Bold (Ctrl+B)"><b>B</b></button>
+    <button class="rt-btn" data-cmd="italic" title="Italic (Ctrl+I)"><i>I</i></button>
+    <button class="rt-btn" data-cmd="underline" title="Underline (Ctrl+U)"><u>U</u></button>
+    <button class="rt-btn" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
+    <div class="rt-sep"></div>
+    <select class="rt-size-select" id="rt-font-size" title="Font Size">
+      <option value="">Size</option>
+      <option value="1">10px</option>
+      <option value="2">13px</option>
+      <option value="3">16px</option>
+      <option value="4">18px</option>
+      <option value="5">24px</option>
+      <option value="6">32px</option>
+      <option value="7">48px</option>
+    </select>
+    <div class="rt-sep"></div>
+    <div class="rt-color-wrap" title="Text Color">
+      <input type="color" id="rt-text-color" value="#ffffff" />
+      <span class="rt-color-icon">A</span>
+      <div class="rt-color-bar" id="rt-color-bar" style="background:#ffffff"></div>
+    </div>
+    <div class="rt-color-wrap" title="Highlight Color">
+      <input type="color" id="rt-bg-color" value="#ffff00" />
+      <span class="rt-color-icon" style="background: rgba(255,255,0,0.3); border-radius:3px; padding:0 2px;">A</span>
+      <div class="rt-color-bar" style="background:#ffff00"></div>
+    </div>
+    <div class="rt-sep"></div>
+    <button class="rt-btn" data-cmd="removeFormat" title="Clear Formatting">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 10L3 10"/><path d="M21 6L3 6"/><path d="M21 14L3 14"/><path d="M17 18L3 18"/></svg>
+    </button>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════════
+       ❸  STYLE PANEL
+       ══════════════════════════════════════════════════════════════ -->
+  <div id="style-panel">
+    <div class="sp-header">
+      <h3>🎨 Style Customizer</h3>
+      <p>Edit colors &amp; font sizes. Saves with page content.</p>
+    </div>
+
+    <!-- Hero -->
+    <div class="sp-section">
+      <div class="sp-section-title">Hero Section</div>
+      <div class="sp-row">
+        <span class="sp-label">Title Color</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" id="swatch-hero-title-color" style="background:#ffffff">
+            <input type="color" value="#ffffff" data-token="--hero-title-color" />
+          </div>
+          <span class="sp-color-hex">#ffffff</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Subtitle Color</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:rgba(255,255,255,0.75)">
+            <input type="color" value="#c0c0c8" data-token="--hero-subtitle-color" />
+          </div>
+          <span class="sp-color-hex">#c0c0c8</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Stat Value Color</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#ffffff">
+            <input type="color" value="#ffffff" data-token="--hero-stat-value-color" />
+          </div>
+          <span class="sp-color-hex">#ffffff</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Title Size</span>
+        <div class="sp-slider-wrap">
+          <input type="range" class="sp-slider" min="24" max="80" value="56" data-token="--hero-title-size"
+            data-unit="px" />
+          <span class="sp-slider-val">56px</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Subtitle Size</span>
+        <div class="sp-slider-wrap">
+          <input type="range" class="sp-slider" min="12" max="28" value="18" data-token="--hero-subtitle-size"
+            data-unit="px" />
+          <span class="sp-slider-val">18px</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section Headings -->
+    <div class="sp-section">
+      <div class="sp-section-title">Section Headings</div>
+      <div class="sp-row">
+        <span class="sp-label">Heading Color</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#0f172a">
+            <input type="color" value="#0f172a" data-token="--section-heading-color" />
+          </div>
+          <span class="sp-color-hex">#0f172a</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Label / Accent Color</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#E32636">
+            <input type="color" value="#E32636" data-token="--section-label-color" />
+          </div>
+          <span class="sp-color-hex">#E32636</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Heading Size</span>
+        <div class="sp-slider-wrap">
+          <input type="range" class="sp-slider" min="18" max="52" value="36" data-token="--section-heading-size"
+            data-unit="px" />
+          <span class="sp-slider-val">36px</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cards -->
+    <div class="sp-section">
+      <div class="sp-section-title">Cards</div>
+      <div class="sp-row">
+        <span class="sp-label">Card Title Color</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#0f172a">
+            <input type="color" value="#0f172a" data-token="--card-title-color" />
+          </div>
+          <span class="sp-color-hex">#0f172a</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Card Desc Color</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#64748b">
+            <input type="color" value="#64748b" data-token="--card-desc-color" />
+          </div>
+          <span class="sp-color-hex">#64748b</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Title Size</span>
+        <div class="sp-slider-wrap">
+          <input type="range" class="sp-slider" min="12" max="24" value="17" data-token="--card-title-size"
+            data-unit="px" />
+          <span class="sp-slider-val">17px</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Desc Size</span>
+        <div class="sp-slider-wrap">
+          <input type="range" class="sp-slider" min="10" max="18" value="14" data-token="--card-desc-size"
+            data-unit="px" />
+          <span class="sp-slider-val">14px</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navbar -->
+    <div class="sp-section">
+      <div class="sp-section-title">Navigation Bar</div>
+      <div class="sp-row">
+        <span class="sp-label">Link Color</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#cccccc">
+            <input type="color" value="#cccccc" data-token="--nav-link-color" />
+          </div>
+          <span class="sp-color-hex">#cccccc</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Link Size</span>
+        <div class="sp-slider-wrap">
+          <input type="range" class="sp-slider" min="10" max="18" value="14" data-token="--nav-link-size"
+            data-unit="px" />
+          <span class="sp-slider-val">14px</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="sp-section">
+      <div class="sp-section-title">Footer</div>
+      <div class="sp-row">
+        <span class="sp-label">Heading Color</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#ffffff">
+            <input type="color" value="#ffffff" data-token="--footer-heading-color" />
+          </div>
+          <span class="sp-color-hex">#ffffff</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Body Text Color</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#888899">
+            <input type="color" value="#888899" data-token="--footer-text-color" />
+          </div>
+          <span class="sp-color-hex">#888899</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Link Color</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#888899">
+            <input type="color" value="#888899" data-token="--footer-link-color" />
+          </div>
+          <span class="sp-color-hex">#888899</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Body Size</span>
+        <div class="sp-slider-wrap">
+          <input type="range" class="sp-slider" min="10" max="18" value="14" data-token="--footer-body-size"
+            data-unit="px" />
+          <span class="sp-slider-val">14px</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Individual Button Colors -->
+    <div class="sp-section">
+      <div class="sp-section-title">Button Colors (Individual)</div>
+      <div class="sp-row">
+        <span class="sp-label">Hero Explore BG</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#E32636">
+            <input type="color" value="#E32636" data-token="--btn-hero-explore-bg" />
+          </div>
+          <span class="sp-color-hex">#E32636</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Hero Explore Text</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#ffffff">
+            <input type="color" value="#ffffff" data-token="--btn-hero-explore-text" />
+          </div>
+          <span class="sp-color-hex">#ffffff</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Nav CTA BG</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#E32636">
+            <input type="color" value="#E32636" data-token="--btn-nav-cta-bg" />
+          </div>
+          <span class="sp-color-hex">#E32636</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Nav CTA Text</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#ffffff">
+            <input type="color" value="#ffffff" data-token="--btn-nav-cta-text" />
+          </div>
+          <span class="sp-color-hex">#ffffff</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Footer Start BG</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#E32636">
+            <input type="color" value="#E32636" data-token="--btn-footer-start-bg" />
+          </div>
+          <span class="sp-color-hex">#E32636</span>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">About CTA Color</span>
+        <div class="sp-color-wrap">
+          <div class="sp-color-swatch" style="background:#E32636">
+            <input type="color" value="#E32636" data-token="--btn-about-cta-color" />
+          </div>
+          <span class="sp-color-hex">#E32636</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════════
+       ❹  BUTTON EDIT POPOVER
+       ══════════════════════════════════════════════════════════════ -->
+  <div id="btn-popover">
+    <button class="bpop-close" id="bpop-close-btn">×</button>
+    <div class="bpop-title">🎨 Edit Button</div>
+    <div class="bpop-row">
+      <div class="bpop-label">Button Text</div>
+      <input type="text" class="bpop-input" id="bpop-text-input" placeholder="Button label…" />
+    </div>
+    <div class="bpop-row">
+      <div class="bpop-label">Colors</div>
+      <div class="bpop-colors">
+        <div class="bpop-color-item">
+          <div class="bpop-color-label">Background</div>
+          <div class="bpop-color-swatch" id="bpop-bg-swatch" style="background:#E32636">
+            <input type="color" id="bpop-bg-color" value="#E32636" />
+          </div>
+        </div>
+        <div class="bpop-color-item">
+          <div class="bpop-color-label">Text</div>
+          <div class="bpop-color-swatch" id="bpop-text-swatch" style="background:#ffffff">
+            <input type="color" id="bpop-text-color" value="#ffffff" />
+          </div>
+        </div>
+      </div>
+    </div>
+    <button class="bpop-apply" id="bpop-apply-btn">Apply Changes</button>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════════
+       ❺  LINK EDIT POPOVER
+       ══════════════════════════════════════════════════════════════ -->
+  <div id="link-popover">
+    <button class="bpop-close" id="lpop-close-btn">×</button>
+    <div class="bpop-title">🔗 Edit Link</div>
+    <div class="bpop-row">
+      <div class="bpop-label">Link Text</div>
+      <input type="text" class="bpop-input" id="lpop-text-input" placeholder="Link label…" />
+    </div>
+    <div class="bpop-row">
+      <div class="bpop-label">URL / href</div>
+      <input type="text" class="bpop-input" id="lpop-href-input" placeholder="https://… or page.html" />
+    </div>
+    <button class="bpop-apply" id="lpop-apply-btn">Apply Link</button>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════════
+       ❻  ADD CARD MODAL
+       ══════════════════════════════════════════════════════════════ -->
+  <div id="add-card-modal">
+    <div class="acm-box">
+      <h3>➕ Add New Card</h3>
+      <div class="acm-label">Card Title *</div>
+      <input type="text" class="acm-input" id="acm-title" placeholder="e.g. New Service" />
+      <div class="acm-label">Description *</div>
+      <textarea class="acm-textarea" id="acm-desc" placeholder="Short description of this service…"></textarea>
+      <div class="acm-label">Card Image</div>
+      <div class="acm-img-upload" id="acm-img-upload">
+        <input type="file" id="acm-img-file" accept="image/*" style="display:none" />
+        <div class="acm-img-preview" id="acm-img-preview">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:32px;height:32px;opacity:0.5;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+          <span>Click to upload image</span>
+        </div>
+      </div>
+      <div class="acm-label">Icon (Lucide name)</div>
+      <div class="acm-icon-row" id="acm-icon-row">
+        <span class="acm-icon-chip selected" data-icon="zap">⚡ zap</span>
+        <span class="acm-icon-chip" data-icon="shield-check">🛡 shield</span>
+        <span class="acm-icon-chip" data-icon="globe">🌍 globe</span>
+        <span class="acm-icon-chip" data-icon="cpu">💻 cpu</span>
+        <span class="acm-icon-chip" data-icon="settings">⚙️ settings</span>
+        <span class="acm-icon-chip" data-icon="truck">🚚 truck</span>
+        <span class="acm-icon-chip" data-icon="leaf">🌿 leaf</span>
+        <span class="acm-icon-chip" data-icon="activity">📈 activity</span>
+      </div>
+      <div class="acm-actions">
+        <button class="acm-btn-cancel" id="acm-cancel">Cancel</button>
+        <button class="acm-btn-add" id="acm-confirm">Add Card</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════════════════════
+       ACTUAL WEBSITE CONTENT
+       ════════════════════════════════════════════════════════════════ -->
+
+  <!-- ═══════ NAVBAR — Fully editable ═══════ -->
+  <nav class="navbar">
+    <div class="section-container nav-inner">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-bg">
+          <img src="assets/Logo.gif" alt="Elsewedy SEDCO">
+        </div>
+      </a>
+      <div class="nav-links">
+        <!-- ★ data-cms-link: click in edit mode to change text + URL -->
+        <a href="index.html" class="active" data-cms-link="nav.home" data-cms-tooltip="Click to edit link">Home<span
+            class="underline"></span></a>
+        <a href="about.html" data-cms-link="nav.about" data-cms-tooltip="Click to edit link">About<span
+            class="underline"></span></a>
+        <a href="solutions.html" data-cms-link="nav.solutions" data-cms-tooltip="Click to edit link">Solutions<span
+            class="underline"></span></a>
+        <a href="marketplace.html" data-cms-link="nav.marketplace"
+          data-cms-tooltip="Click to edit link">Marketplace<span class="underline"></span></a>
+        <!-- ★ data-cms-btn: click in edit mode to change text + colors -->
+        <a href="contact.html" class="nav-cta" data-cms-btn="nav.cta" data-cms-tooltip="Click to edit button">Contact
+          Us</a>
+      </div>
+      <button class="mobile-toggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="mobile-menu section-container">
+      <a href="index.html" data-cms-link="mob.nav.home">Home</a>
+      <a href="about.html" data-cms-link="mob.nav.about">About</a>
+      <a href="solutions.html" data-cms-link="mob.nav.solutions">Solutions</a>
+      <a href="marketplace.html" data-cms-link="mob.nav.marketplace">Marketplace</a>
+      <a href="contact.html" class="mobile-cta" data-cms-btn="mob.nav.cta">Contact Us</a>
+    </div>
+  </nav>
+
+
+  <!-- ═══════ HERO ═══════ -->
+  <section class="hero">
+    <div class="hero-bg-image" data-cms-image="hero.image" data-cms-tooltip="Click to replace hero bg">
+      <img src="assets/images/hero-bg.png" alt="Hero Background" id="img-hero-bg">
+      <div class="cms-img-overlay">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="17 8 12 3 7 8" />
+          <line x1="12" y1="3" x2="12" y2="15" />
+        </svg>
+        <span>Replace background</span>
+      </div>
+      <div class="hero-overlay-bottom"></div>
+      <div class="hero-overlay-left"></div>
+    </div>
+    <div class="hero-accent-top"></div>
+    <div class="hero-bottom-fade"></div>
+
+    <div class="hero-content section-container">
+      <h1 class="animate-in delay-2">
+        <span data-cms-field="hero.title" data-cms-tooltip="Dbl-click to edit title">Powering the Future of</span><br>
+        <span class="gradient-text" data-cms-field="hero.titleHighlight"
+          data-cms-tooltip="Dbl-click to edit highlight">Energy &amp; Infrastructure</span>
+      </h1>
+
+      <p class="hero-subtitle animate-in delay-3" data-cms-field="hero.subtitle"
+        data-cms-tooltip="Dbl-click to edit subtitle">
+        Delivering integrated petroleum and electrical solutions across MENA with world-class equipment, engineering
+        excellence, and comprehensive field services.
+      </p>
+
+      <div class="hero-buttons animate-in delay-4">
+        <!-- ★ data-cms-btn on every button for full text+color control -->
+        <a href="solutions.html" class="btn-primary" data-cms-btn="hero.btnExplore"
+          data-cms-tooltip="Click to edit button">
+          Explore Solutions <i data-lucide="arrow-right" data-cms-icon="hero.btnExplore.icon" data-cms-tooltip="Dbl-click to edit icon" style="width:18px;height:18px;"></i>
+        </a>
+        <a href="about.html" class="btn-outline" data-cms-btn="hero.btnLearn" data-cms-tooltip="Click to edit button">
+          <i data-lucide="play-circle" data-cms-icon="hero.btnLearn.icon" data-cms-tooltip="Dbl-click to edit icon" style="width:18px;height:18px;"></i> Learn More
+        </a>
+      </div>
+
+      <div class="hero-stats animate-in delay-5">
+        <div>
+          <div class="hero-stat-value" data-cms-field="hero.stat1Value" data-cms-tooltip="Dbl-click to edit">35+</div>
+          <div class="hero-stat-label" data-cms-field="hero.stat1Label" data-cms-tooltip="Dbl-click to edit">Years</div>
+        </div>
+        <div>
+          <div class="hero-stat-value" data-cms-field="hero.stat2Value" data-cms-tooltip="Dbl-click to edit">500+</div>
+          <div class="hero-stat-label" data-cms-field="hero.stat2Label" data-cms-tooltip="Dbl-click to edit">Projects
+          </div>
+        </div>
+        <div>
+          <div class="hero-stat-value" data-cms-field="hero.stat3Value" data-cms-tooltip="Dbl-click to edit">15+</div>
+          <div class="hero-stat-label" data-cms-field="hero.stat3Label" data-cms-tooltip="Dbl-click to edit">Countries
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════ ABOUT SECTION ═══════ -->
+  <section class="about-section">
+    <div class="dot-pattern"></div>
+    <div class="section-container about-grid">
+      <div class="left-column">
+        <div class="reveal">
+          <div class="section-label">
+            <div class="line"></div>
+            <span data-cms-field="about.label" data-cms-tooltip="Dbl-click to edit label">Who We Are</span>
+          </div>
+          <h2 class="about-title" data-cms-field="about.title" data-cms-tooltip="Dbl-click to edit title">
+            Engineering <span>Excellence</span> for a Sustainable Future
+          </h2>
+          <p class="about-text" data-cms-field="about.text" data-cms-tooltip="Dbl-click to edit text">
+            Elsewedy SEDCO is a leading provider of integrated services in the petroleum and electrical sectors,
+            delivering cutting-edge solutions to clients across the MENA region and beyond.
+          </p>
+          <a href="about.html" class="about-cta" style="margin-bottom:24px;" data-cms-btn="about.ctaBtn"
+            data-cms-tooltip="Click to edit button">
+            Discover Our Story <i data-lucide="arrow-right" style="width:16px;height:16px;"></i>
+          </a>
+        </div>
+        <div class="about-image reveal" style="width:100%;height:260px;margin-top:24px;" data-cms-image="about.image"
+          data-cms-tooltip="Click to replace image">
+          <img src="assets/images/about-corporate.png" alt="Who We Are" id="img-about"
+            style="border-radius:16px;object-fit:cover;width:100%;height:100%;box-shadow:0 20px 40px rgba(0,0,0,0.1);">
+          <div class="cms-img-overlay" style="border-radius:16px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            <span>Replace image</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="right-column feature-cards reveal" data-delay="0.2">
+        <div class="feature-card premium-card-style">
+          <div class="card-icon-wrap"><i data-lucide="shield-check" data-cms-icon="about.card1.icon" data-cms-tooltip="Dbl-click to edit icon" style="width:24px;height:24px;"></i></div>
+          <div>
+            <h3 style="font-weight: 600; color: var(--brand-dark); font-size: 1rem; margin-bottom: 4px;" data-cms-field="about.card1Title" data-cms-tooltip="Dbl-click to edit">Certified Quality</h3>
+            <p style="color: var(--brand-gray-medium); font-size: 0.875rem; line-height: 1.6;" data-cms-field="about.card1Text" data-cms-tooltip="Dbl-click to edit">ISO 9001, 14001, and 45001 certified operations ensuring the highest standards.</p>
+          </div>
+        </div>
+        <div class="feature-card premium-card-style">
+          <div class="card-icon-wrap"><i data-lucide="globe" data-cms-icon="about.card2.icon" data-cms-tooltip="Dbl-click to edit icon" style="width:24px;height:24px;"></i></div>
+          <div>
+            <h3 style="font-weight: 600; color: var(--brand-dark); font-size: 1rem; margin-bottom: 4px;" data-cms-field="about.card2Title" data-cms-tooltip="Dbl-click to edit">Global Reach</h3>
+            <p style="color: var(--brand-gray-medium); font-size: 0.875rem; line-height: 1.6;" data-cms-field="about.card2Text" data-cms-tooltip="Dbl-click to edit">Operations spanning 15+ countries with localized expertise and global standards.</p>
+          </div>
+        </div>
+        <div class="feature-card premium-card-style">
+          <div class="card-icon-wrap"><i data-lucide="users" data-cms-icon="about.card3.icon" data-cms-tooltip="Dbl-click to edit icon" style="width:24px;height:24px;"></i></div>
+          <div>
+            <h3 style="font-weight: 600; color: var(--brand-dark); font-size: 1rem; margin-bottom: 4px;" data-cms-field="about.card3Title" data-cms-tooltip="Dbl-click to edit">Expert Team</h3>
+            <p style="color: var(--brand-gray-medium); font-size: 0.875rem; line-height: 1.6;" data-cms-field="about.card3Text" data-cms-tooltip="Dbl-click to edit">Over 2,000 skilled professionals delivering excellence across every project.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════ CATEGORIES SECTION — Dynamic Card Management ═══════ -->
+  <section class="categories-section">
+    <div class="decoration-tr"></div>
+    <div class="decoration-bl"></div>
+    <div class="section-container">
+      <div class="categories-header reveal">
+        <div class="section-label center">
+          <div class="line"></div>
+          <span data-cms-field="categories.sectionLabel" data-cms-tooltip="Dbl-click to edit">Our Expertise</span>
+        </div>
+        <h2 data-cms-field="categories.sectionTitle" data-cms-tooltip="Dbl-click to edit">Comprehensive Service
+          Categories</h2>
+        <p data-cms-field="categories.sectionSubtitle" data-cms-tooltip="Dbl-click to edit">From petroleum services to
+          electrical infrastructure, we deliver end-to-end solutions for the energy industry.</p>
+      </div>
+
+      <!-- ★ Card grid — cards are managed here. Each card has a delete btn and full data-cms-field text editing. -->
+      <div class="categories-grid" id="categories-grid">
+        <!-- Cards are injected here by the Card Manager JS -->
+      </div>
+
+      <!-- ★ Add Card button — only visible in edit mode -->
+      <button id="add-card-btn">＋ Add New Card</button>
+    </div>
+  </section>
+
+
+  <!-- ═══════ FOOTER — Fully editable ═══════ -->
+  <footer class="site-footer">
+    <div class="footer-accent-top"></div>
+    <div class="section-container" style="padding-top:64px;padding-bottom:48px;">
+      <div class="footer-cta reveal">
+        <h2 data-cms-field="footer.ctaTitle" data-cms-tooltip="Dbl-click to edit CTA title">Ready to
+          <span>Transform</span> Your Operations?
+        </h2>
+        <p data-cms-field="footer.ctaText" data-cms-tooltip="Dbl-click to edit CTA text">Partner with us for innovative
+          petroleum and electrical solutions that drive efficiency, safety, and sustainable growth.</p>
+        <div class="footer-cta-buttons">
+          <a href="contact.html" class="btn-primary" data-cms-btn="footer.ctaBtn1"
+            data-cms-tooltip="Click to edit button">Get Started <i data-lucide="arrow-right"
+              style="width:16px;height:16px;"></i></a>
+          <a href="solutions.html" class="btn-outline" style="border-color:rgba(255,255,255,0.15);"
+            data-cms-btn="footer.ctaBtn2" data-cms-tooltip="Click to edit button">View Solutions</a>
+        </div>
+      </div>
+      <div class="footer-divider" style="margin-top:48px;"></div>
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="index.html" class="nav-logo" style="display:inline-block; text-decoration:none;">
+            <div class="logo-bg">
+              <img src="assets/Logo.gif" alt="Elsewedy SEDCO">
+            </div>
+          </a>
+          <p style="margin-top:12px;" data-cms-field="footer.brandText" data-cms-tooltip="Dbl-click to edit">Leading
+            provider of integrated petroleum and electrical services across the MENA region.</p>
+        </div>
+        <div class="footer-section">
+          <h4 data-cms-field="footer.servicesHeading" data-cms-tooltip="Dbl-click to edit">Services</h4>
+          <ul>
+            <li><a href="solutions.html" data-cms-link="footer.link1" data-cms-tooltip="Click to edit link">Petroleum
+                Services</a></li>
+            <li><a href="solutions.html" data-cms-link="footer.link2" data-cms-tooltip="Click to edit link">Electrical
+                Systems</a></li>
+            <li><a href="solutions.html" data-cms-link="footer.link3"
+                data-cms-tooltip="Click to edit link">Instrumentation</a></li>
+            <li><a href="marketplace.html" data-cms-link="footer.link4"
+                data-cms-tooltip="Click to edit link">Marketplace</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4 data-cms-field="footer.companyHeading" data-cms-tooltip="Dbl-click to edit">Company</h4>
+          <ul>
+            <li><a href="about.html" data-cms-link="footer.link5" data-cms-tooltip="Click to edit link">About Us</a>
+            </li>
+            <li><a href="contact.html" data-cms-link="footer.link6" data-cms-tooltip="Click to edit link">Contact</a>
+            </li>
+          </ul>
+        </div>
+        <div class="footer-section footer-contact">
+          <h4 data-cms-field="footer.contactHeading" data-cms-tooltip="Dbl-click to edit">Contact</h4>
+          <ul>
+            <li><i data-lucide="map-pin" data-cms-icon="footer.icon1" data-cms-tooltip="Dbl-click to edit icon" style="width:16px;height:16px;"></i><span data-cms-field="footer.address"
+                data-cms-tooltip="Dbl-click to edit">Cairo, Egypt</span></li>
+            <li><i data-lucide="phone" data-cms-icon="footer.icon2" data-cms-tooltip="Dbl-click to edit icon" style="width:16px;height:16px;"></i><span data-cms-field="footer.phone"
+                data-cms-tooltip="Dbl-click to edit">+20 2 2345 6789</span></li>
+            <li><i data-lucide="mail" data-cms-icon="footer.icon3" data-cms-tooltip="Dbl-click to edit icon" style="width:16px;height:16px;"></i><span data-cms-field="footer.email"
+                data-cms-tooltip="Dbl-click to edit">info@elsewedysedco.com</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p data-cms-field="footer.copyright" data-cms-tooltip="Dbl-click to edit">© 2024 Elsewedy SEDCO. All rights
+          reserved.</p>
+        <div class="footer-bottom-links">
+          <a href="#" data-cms-link="footer.privacy" data-cms-tooltip="Click to edit link">Privacy Policy</a>
+          <a href="#" data-cms-link="footer.terms" data-cms-tooltip="Click to edit link">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Site scripts -->
+  <script src="js/navbar.js?v=1.1.0"></script>
+  <script src="js/animations.js"></script>
+  <!-- lucide icons rendered by cms-editor.js -->
+
+
+  <!-- CMS EDITOR ENGINE -->
+  <script>
+    window.CMS_PAGE_KEY = 'home';
+    window.CMS_PREVIEW_PAGE = 'index.html';
+    window.CMS_DEFAULT_CARDS = [
+      { id: 'cat0', num: '01', title: 'Petroleum Services', desc: 'Complete upstream and downstream petroleum solutions including drilling, well completion, and production optimization.', img: 'assets/images/solution-turnkey.png', icon: 'oil-can' },
+      { id: 'cat1', num: '02', title: 'Electrical Systems', desc: 'Design, installation, and maintenance of electrical infrastructure for industrial and commercial applications.', img: 'assets/images/cable-tray.png', icon: 'zap' },
+      { id: 'cat2', num: '03', title: 'Instrumentation & Control', desc: 'Advanced automation and control systems for process optimization and operational efficiency.', img: 'assets/images/solution-consultation.png', icon: 'cpu' },
+      { id: 'cat3', num: '04', title: 'Mechanical Services', desc: 'Comprehensive mechanical engineering services including fabrication, installation, and maintenance.', img: 'assets/images/explosion-proof.png', icon: 'settings' },
+      { id: 'cat4', num: '05', title: 'Civil Construction', desc: 'Full-scale civil engineering and construction services for energy infrastructure projects.', img: 'assets/images/solution-compliance.png', icon: 'building' },
+      { id: 'cat5', num: '06', title: 'Renewable Energy', desc: 'Solar, wind, and sustainable energy solutions supporting the global energy transition.', img: 'assets/images/solar-energy.png', icon: 'leaf' }
+    ];
+  </script>
+  <script src="js/cms-editor.js?v=1.3.0"></script>
+  <script src="js/auth-session.js"></script>
+</body>
+</html>
