@@ -25,6 +25,9 @@
   if (fname.includes('_for_edit')) return;
 
   const STORAGE_KEY = 'sedco_cms_' + pageKey;
+  const SUPABASE_URL = 'https://nnwcwqasmdpbvotfepvy.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_llEtCRU2fkmNycPY4HwJ5w_XqnkQFQf';
+  const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
   function getButtonTextContainer(el) {
     return Array.from(el.children).find(child => {
@@ -56,6 +59,20 @@
   }
 
   async function loadData() {
+    if (supabaseClient) {
+      try {
+        const { data, error } = await supabaseClient
+          .from('cms_pages')
+          .select('payload')
+          .eq('page_key', pageKey)
+          .maybeSingle();
+        if (!error && data && data.payload && data.payload._editor) return data.payload;
+        if (error) console.warn('CMS Loader: Supabase load failed, trying legacy JSON', error);
+      } catch (e) {
+        console.warn('CMS Loader: Supabase load failed, trying legacy JSON', e);
+      }
+    }
+
     try {
       const resp = await fetch(`cms-data/${pageKey}.json`, { cache: 'no-store' });
       if (resp.ok) {

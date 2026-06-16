@@ -79,6 +79,38 @@ document.addEventListener('DOMContentLoaded', async function() {
     return role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   }
 
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[ch]));
+  }
+
+  async function loadCmsPage(pageKey) {
+    const { data, error } = await supabase
+      .from('cms_pages')
+      .select('payload')
+      .eq('page_key', pageKey)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? data.payload : null;
+  }
+
+  async function saveCmsPage(pageKey, payload) {
+    const { error } = await supabase
+      .from('cms_pages')
+      .upsert({
+        page_key: pageKey,
+        payload,
+        updated_by: state.user ? state.user.id : null,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'page_key' });
+    if (error) throw error;
+  }
+
   function showLoginForm() {
     UI.authWrapper.innerHTML = `
       <div class="admin-login-card">
@@ -233,7 +265,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         .from('user_roles')
         .select('role')
         .eq('user_id', state.user.id)
-        .single();
+        .maybeSingle();
 
       if (roleError || !roleData || !roleData.role) {
         showUnauthorizedState(state.user.email);
@@ -250,20 +282,16 @@ document.addEventListener('DOMContentLoaded', async function() {
       UI.authWrapper.style.display = 'none';
       UI.app.style.display = 'flex';
 
-      // Setup navigation and pre-load all page configs from server to localStorage
+      // Setup navigation and pre-load all page configs from Supabase to localStorage cache
       setupNavigation();
-      CMS_KEYS.forEach(key => {
+      CMS_KEYS.forEach(async key => {
         const pageKey = key.replace('sedco_cms_', '');
-        fetch(`http://localhost:3000/api/load-visual?page=${pageKey}`)
-          .then(res => {
-            if (res.ok) return res.json();
-          })
-          .then(data => {
-            if (data && data._editor) {
-              localStorage.setItem(key, JSON.stringify(data));
-            }
-          })
-          .catch(err => console.warn(`Could not preload ${pageKey} data`, err));
+        try {
+          const data = await loadCmsPage(pageKey);
+          if (data && data._editor) localStorage.setItem(key, JSON.stringify(data));
+        } catch (err) {
+          console.warn(`Could not preload ${pageKey} data`, err);
+        }
       });
       loadView(state.currentView);
 
@@ -816,8 +844,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 <td>${m.email}</td>
                 <td>${m.subject || 'General Inquiry'}</td>
                 <td><span class="status-badge ${m.replied ? 'status-confirmed' : 'status-pending'}">${m.replied ? 'Replied' : 'Pending'}</span></td>
-                <td>
-                  <button class="action-btn btn-small-primary" onclick="window.openReplyModal('${m.id}', '${m.email}')">Reply</button>
+                <td style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <button class="action-btn btn-small-outline" onclick="window.viewMessageDetails('${m.id}')">View</button>
+                  <button class="action-btn btn-small-primary" onclick="window.openReplyModal('${m.id}', '${escapeHtml(m.email)}')">Reply</button>
                 </td>
               </tr>
             `).join('')}
@@ -848,6 +877,36 @@ document.addEventListener('DOMContentLoaded', async function() {
     `;
     if (window.lucide) window.lucide.createIcons();
   }
+
+  window.viewMessageDetails = async (id) => {
+    const { data: msg, error } = await supabase.from('contacts').select('*').eq('id', id).single();
+    if (error || !msg) return alert('Could not load message details.');
+
+    const detailRow = (label, value) => `
+      <div style="padding:10px 0;border-bottom:1px solid var(--admin-border);">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--admin-text-muted);font-weight:700;margin-bottom:4px;">${label}</div>
+        <div style="font-size:14px;color:var(--admin-text-main);white-space:pre-wrap;word-break:break-word;">${escapeHtml(value || 'N/A')}</div>
+      </div>
+    `;
+
+    openModal('Message Details', `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 18px;">
+        ${detailRow('Name', msg.name)}
+        ${detailRow('Email', msg.email)}
+        ${detailRow('Company', msg.company)}
+        ${detailRow('Phone', msg.phone)}
+        ${detailRow('Subject', msg.subject || 'General Inquiry')}
+        ${detailRow('Created At', msg.created_at ? fmtDate(msg.created_at) : '')}
+      </div>
+      ${detailRow('Message', msg.message)}
+      ${detailRow('Reply Status', msg.replied ? 'Replied' : 'Pending')}
+      ${msg.reply_message ? detailRow('Reply Message', msg.reply_message) : ''}
+      <div class="modal-footer" style="margin-top:1rem;">
+        <button type="button" class="action-btn btn-small-outline" onclick="document.getElementById('dynamicModal').remove()">Close</button>
+        <button type="button" class="action-btn btn-small-primary" onclick="window.openReplyModal('${msg.id}', '${escapeHtml(msg.email)}')">Reply</button>
+      </div>
+    `);
+  };
 
   window.openUserModal = () => {
     openModal('Assign User Role', `
@@ -1260,13 +1319,19 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     openModal('View & Reply to Message', `
       <div style="margin-bottom:1rem; padding:1rem; background:var(--brand-off-white); border-radius:8px;">
-        <h4 style="margin:0 0 8px 0; font-size:14px;">Original Message from ${contact.name}</h4>
-        <p style="margin:0; font-size:13px; color:var(--admin-text-muted); white-space:pre-wrap;">${contact.message || 'No message content.'}</p>
+        <h4 style="margin:0 0 10px 0; font-size:14px;">Original Message from ${escapeHtml(contact.name)}</h4>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;font-size:13px;color:var(--admin-text-muted);margin-bottom:12px;">
+          <div><strong>Email:</strong> ${escapeHtml(contact.email)}</div>
+          <div><strong>Phone:</strong> ${escapeHtml(contact.phone || 'N/A')}</div>
+          <div><strong>Company:</strong> ${escapeHtml(contact.company || 'N/A')}</div>
+          <div><strong>Subject:</strong> ${escapeHtml(contact.subject || 'General Inquiry')}</div>
+        </div>
+        <p style="margin:0; font-size:13px; color:var(--admin-text-muted); white-space:pre-wrap;">${escapeHtml(contact.message || 'No message content.')}</p>
       </div>
       <form id="replyForm">
         <div class="form-group">
           <label>To</label>
-          <input type="text" class="form-control" value="${email}" readonly disabled>
+          <input type="text" class="form-control" value="${escapeHtml(email)}" readonly disabled>
         </div>
         <div class="form-group">
           <label>Reply Message</label>
@@ -2170,32 +2235,26 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (!version) return alert('Version not found.');
     restoreSnapshot(version.snapshot);
     
-    // Sync restored pages back to the server persistent JSON files on disk
+    // Sync restored pages back to Supabase
     const promises = [];
     Object.keys(version.snapshot).forEach(key => {
       if (key.startsWith('sedco_cms_')) {
         const pageKey = key.replace('sedco_cms_', '');
         try {
           const payload = JSON.parse(version.snapshot[key]);
-          promises.push(
-            fetch('http://localhost:3000/api/save-visual', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ pageKey, payload })
-            })
-          );
+          promises.push(saveCmsPage(pageKey, payload));
         } catch(e) {}
       }
     });
 
     Promise.all(promises)
       .then(() => {
-        alert('Version "' + version.title + '" has been successfully restored to disk and browser cache.');
+        alert('Version "' + version.title + '" has been successfully restored to Supabase and browser cache.');
         loadView('history');
       })
       .catch(err => {
         console.error('Failed to sync restored version to disk:', err);
-        alert('Version "' + version.title + '" has been restored to browser cache, but could not sync completely to disk.');
+        alert('Version "' + version.title + '" has been restored to browser cache, but could not sync completely to Supabase.');
         loadView('history');
       });
   };
@@ -2268,19 +2327,14 @@ document.addEventListener('DOMContentLoaded', async function() {
       if (!confirm('Restore this auto-save for "' + (entry.pageName || entry.page) + '"?')) return;
       localStorage.setItem('sedco_cms_' + entry.page, JSON.stringify(entry.snapshot));
       
-      // Save snapshot back to server JSON file on disk
-      fetch('http://localhost:3000/api/save-visual', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pageKey: entry.page, payload: entry.snapshot })
-      })
-      .then(res => res.json())
+      // Save snapshot back to Supabase
+      saveCmsPage(entry.page, entry.snapshot)
       .then(result => {
-        alert('Restored successfully to disk! Refresh the page to see changes.');
+        alert('Restored successfully to Supabase! Refresh the page to see changes.');
         loadView('history');
       })
       .catch(err => {
-        console.error('Failed to restore to server:', err);
+        console.error('Failed to restore to Supabase:', err);
         alert('Restored locally in browser (local server offline).');
         loadView('history');
       });
@@ -2316,12 +2370,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     // 1. Fetch current visual configuration for the about page
     let data = null;
     try {
-      const resp = await fetch('http://localhost:3000/api/load-visual?page=about', { cache: 'no-store' });
-      if (resp.ok) {
-        data = await resp.json();
-      }
+      data = await loadCmsPage('about');
     } catch (e) {
-      console.warn("Failed to load certificates from server", e);
+      console.warn("Failed to load certificates from Supabase", e);
     }
     
     if (!data) {
@@ -2416,23 +2467,14 @@ document.addEventListener('DOMContentLoaded', async function() {
       };
 
       try {
-        const resp = await fetch('http://localhost:3000/api/save-visual', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ pageKey: 'about', payload })
-        });
-        if (resp.ok) {
-          localStorage.setItem('sedco_cms_about', JSON.stringify(payload));
-          alert('Certificates saved successfully!');
-          document.getElementById('dynamicModal').remove();
-        } else {
-          const errData = await resp.json();
-          alert('Failed to save certificates: ' + (errData.error || 'Server error'));
-        }
+        await saveCmsPage('about', payload);
+        localStorage.setItem('sedco_cms_about', JSON.stringify(payload));
+        alert('Certificates saved successfully to Supabase!');
+        document.getElementById('dynamicModal').remove();
       } catch (e) {
         // Fallback save to localStorage
         localStorage.setItem('sedco_cms_about', JSON.stringify(payload));
-        alert('Saved to local storage only (persistent server offline).');
+        alert('Saved locally only. Run the CMS SQL in Supabase, then save again. Error: ' + (e.message || e));
         document.getElementById('dynamicModal').remove();
       }
     });

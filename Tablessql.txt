@@ -1,0 +1,105 @@
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.contacts (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  name text NOT NULL,
+  email text NOT NULL,
+  subject text NOT NULL,
+  message text NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  company text,
+  phone text,
+  replied boolean DEFAULT false,
+  reply_message text,
+  CONSTRAINT contacts_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.products (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  title text NOT NULL,
+  category text NOT NULL,
+  summary text,
+  price_range text,
+  min_order text,
+  image_url text,
+  created_at timestamp with time zone DEFAULT now(),
+  details jsonb DEFAULT '{}'::jsonb,
+  pros jsonb DEFAULT '[]'::jsonb,
+  cons jsonb DEFAULT '[]'::jsonb,
+  variants jsonb DEFAULT '[]'::jsonb,
+  stars numeric DEFAULT 4.5,
+  reviews integer DEFAULT 0,
+  specs jsonb DEFAULT '{}'::jsonb,
+  images jsonb DEFAULT '[]'::jsonb,
+  price text,
+  CONSTRAINT products_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.product_inquiries (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  product_name text NOT NULL,
+  customer_name text NOT NULL,
+  customer_email text NOT NULL,
+  company_name text,
+  message text NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT product_inquiries_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.product_reviews (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  product_id uuid,
+  reviewer_name text NOT NULL,
+  rating integer NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  comment text,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT product_reviews_pkey PRIMARY KEY (id),
+  CONSTRAINT product_reviews_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(id)
+);
+CREATE TABLE public.profiles (
+  id uuid NOT NULL,
+  address text,
+  city text,
+  zip_code text,
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT profiles_pkey PRIMARY KEY (id),
+  CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.product_orders (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  product_id uuid,
+  user_id uuid,
+  customer_name text,
+  customer_email text,
+  variant text,
+  quantity integer DEFAULT 1,
+  address text,
+  city text,
+  zip_code text,
+  status text DEFAULT 'pending'::text,
+  created_at timestamp with time zone DEFAULT now(),
+  rejection_reason text,
+  items jsonb DEFAULT '[]'::jsonb,
+  CONSTRAINT product_orders_pkey PRIMARY KEY (id),
+  CONSTRAINT product_orders_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(id),
+  CONSTRAINT product_orders_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.user_roles (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  role text NOT NULL CHECK (role = ANY (ARRAY['admin'::text, 'store_manager'::text, 'order_manager'::text, 'message_manager'::text])),
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT user_roles_pkey PRIMARY KEY (id),
+  CONSTRAINT user_roles_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.admin_logs (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid,
+  user_email text NOT NULL,
+  action text NOT NULL,
+  entity_type text NOT NULL,
+  entity_id text,
+  description text NOT NULL,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT admin_logs_pkey PRIMARY KEY (id),
+  CONSTRAINT admin_logs_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);

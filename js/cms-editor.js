@@ -9,6 +9,9 @@
   const PAGE_NAME = window.CMS_PAGE_NAME || PAGE_KEY;
   const STORAGE_KEY = 'sedco_cms_' + PAGE_KEY;
   const CARD_TEMPLATE = window.CMS_CARD_TEMPLATE || 'default';
+  const SUPABASE_URL = 'https://nnwcwqasmdpbvotfepvy.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_llEtCRU2fkmNycPY4HwJ5w_XqnkQFQf';
+  const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
   /* DOM refs */
   const fileInput = document.getElementById('cms-file-input');
@@ -24,6 +27,50 @@
   let selectedIconName = '';
   let imageDataMap = {};
   let iconDataMap = {};
+
+  async function loadCmsPage(pageKey) {
+    if (supabaseClient) {
+      try {
+        const { data, error } = await supabaseClient
+          .from('cms_pages')
+          .select('payload')
+          .eq('page_key', pageKey)
+          .maybeSingle();
+        if (!error && data && data.payload) return data.payload;
+        if (error) console.warn('CMS Editor: Supabase load failed, trying legacy storage', error);
+      } catch (e) {
+        console.warn('CMS Editor: Supabase load failed, trying legacy storage', e);
+      }
+    }
+
+    try {
+      const resp = await fetch(`cms-data/${pageKey}.json`, { cache: 'no-store' });
+      if (resp.ok) return await resp.json();
+    } catch (e) {
+      console.warn('CMS Editor: Could not load legacy JSON, trying localStorage', e);
+    }
+
+    try {
+      const raw = localStorage.getItem('sedco_cms_' + pageKey);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function saveCmsPage(pageKey, payload) {
+    if (!supabaseClient) throw new Error('Supabase client is not available.');
+    const { error } = await supabaseClient
+      .from('cms_pages')
+      .upsert({ page_key: pageKey, payload, updated_at: new Date().toISOString() }, { onConflict: 'page_key' });
+    if (error) throw error;
+  }
+
+  async function resetCmsPage(pageKey) {
+    if (!supabaseClient) throw new Error('Supabase client is not available.');
+    const { error } = await supabaseClient.from('cms_pages').delete().eq('page_key', pageKey);
+    if (error) throw error;
+  }
 
   function getButtonTextContainer(el) {
     return Array.from(el.children).find(child => {
@@ -145,22 +192,7 @@
      LOAD & APPLY SAVED DATA
   ───────────────────────────────────────── */
   async function loadAndApply() {
-    let data = null;
-    try {
-      const resp = await fetch(`http://localhost:3000/api/load-visual?page=${PAGE_KEY}`, { cache: 'no-store' });
-      if (resp.ok) {
-        data = await resp.json();
-      }
-    } catch (e) {
-      console.warn('CMS Editor: Could not load saved data from server, trying localStorage', e);
-    }
-
-    if (!data) {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) data = JSON.parse(raw);
-      } catch (e) {}
-    }
+    const data = await loadCmsPage(PAGE_KEY);
 
     if (!data || !data._editor) { renderCards(); return; }
 
@@ -329,21 +361,17 @@
     const icons = (typeof iconDataMap !== 'undefined') ? { ...iconDataMap } : {};
     const payload = { _editor: true, fields, buttons, links, images: imageDataMap, icons, styles, cards: CARDS, lastSaved: new Date().toISOString() };
 
-    // Send payload to local persistent server
-    fetch('http://localhost:3000/api/save-visual', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pageKey: PAGE_KEY, payload })
-    })
-    .then(res => res.json())
+    // Send payload to Supabase so production visitors see the edited content.
+    saveCmsPage(PAGE_KEY, payload)
+    .then(() => ({ success: true }))
     .then(serverResult => {
-      showToast('All changes saved to disk!', 'success');
+      showToast('All changes saved to server!', 'success');
       if (saveStatus) { saveStatus.textContent = 'Saved ✓'; setTimeout(() => { saveStatus.textContent = 'Ready'; }, 3000); }
     })
     .catch(err => {
-      console.warn('CMS Editor: Server save failed, saving to localStorage:', err);
-      showToast('Saved to local storage (server offline)', 'warning');
-      if (saveStatus) { saveStatus.textContent = 'Saved Locally'; setTimeout(() => { saveStatus.textContent = 'Ready'; }, 3000); }
+      console.warn('CMS Editor: Supabase save failed, saving to localStorage:', err);
+      showToast('Saved locally only. Run the CMS SQL in Supabase.', 'warning');
+      if (saveStatus) { saveStatus.textContent = 'Server save failed'; setTimeout(() => { saveStatus.textContent = 'Ready'; }, 3000); }
     });
 
     try {
@@ -384,18 +412,13 @@
       document.documentElement.style.removeProperty(ctrl.dataset.token);
     });
     
-    fetch('http://localhost:3000/api/reset-visual', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pageKey: PAGE_KEY })
-    })
-    .then(res => res.json())
+    resetCmsPage(PAGE_KEY)
     .then(() => {
       showToast('Content reset. Reloading…', 'success');
       setTimeout(() => location.reload(), 800);
     })
     .catch(err => {
-      console.warn('CMS Editor: Server reset failed, clearing local configurations:', err);
+      console.warn('CMS Editor: Supabase reset failed, clearing local configurations:', err);
       showToast('Reset complete (local only). Reloading…', 'success');
       setTimeout(() => location.reload(), 800);
     });

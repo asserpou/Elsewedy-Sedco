@@ -12,9 +12,14 @@
   if (fname.includes('_for_edit')) return;
   if (fname.includes('admin')) return;
 
+  const SUPABASE_URL = 'https://nnwcwqasmdpbvotfepvy.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_llEtCRU2fkmNycPY4HwJ5w_XqnkQFQf';
+  const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
   /* ─── Default shared data ─── */
   const DEFAULTS = {
     navbar: {
+      logoSrc: 'assets/Logo.gif',
       logoText: 'Elsewedy <span style="color:#E32636;">SEDCO</span>',
       links: [
         { text: 'Home', href: 'index.html' },
@@ -38,6 +43,10 @@
       btn2Color: ''
     },
     footer: {
+      logoSrc: 'assets/Logo.gif',
+      icon1: 'map-pin',
+      icon2: 'phone',
+      icon3: 'mail',
       brandText: 'Leading provider of integrated petroleum and electrical services across the MENA region.',
       servicesHeading: 'Services',
       serviceLinks: [
@@ -128,6 +137,8 @@
     const fields = saved.fields || {};
     const buttons = saved.buttons || {};
     const links = saved.links || {};
+    const images = saved.images || {};
+    const icons = saved.icons || {};
 
     const fieldMap = {
       'shared.cta.title': ['cta', 'title'],
@@ -148,12 +159,21 @@
       data[section][prop] = fields[key];
     });
 
+    if (images['shared.logo']) {
+      data.navbar.logoSrc = images['shared.logo'];
+      data.footer.logoSrc = images['shared.logo'];
+    }
+
     ['home', 'about', 'solutions', 'marketplace'].forEach((name, index) => {
       applyLink(links[`shared.nav.${name}`] || links[`shared.mob.${name}`], data.navbar.links[index]);
     });
 
     const navCta = buttons['shared.nav.cta'] || buttons['shared.mob.cta'];
     if (navCta && navCta.text !== undefined) data.navbar.ctaText = navCta.text;
+
+    if (icons['shared.footer.icon1']) data.footer.icon1 = icons['shared.footer.icon1'];
+    if (icons['shared.footer.icon2']) data.footer.icon2 = icons['shared.footer.icon2'];
+    if (icons['shared.footer.icon3']) data.footer.icon3 = icons['shared.footer.icon3'];
 
     const ctaBtn1 = buttons['shared.cta.btn1'];
     if (ctaBtn1) {
@@ -186,6 +206,23 @@
   }
 
   async function getSharedData() {
+    if (supabaseClient) {
+      try {
+        const { data, error } = await supabaseClient
+          .from('cms_pages')
+          .select('payload')
+          .eq('page_key', 'shared')
+          .maybeSingle();
+        const saved = data && data.payload;
+        if (!error && saved && saved._editor) {
+          return (saved.fields || saved.links || saved.buttons) ? transformEditorPayload(saved) : mergeSharedData(saved);
+        }
+        if (error) console.warn('CMS Shared: Could not load from Supabase, trying legacy JSON', error);
+      } catch (e) {
+        console.warn('CMS Shared: Could not load from Supabase, trying legacy JSON', e);
+      }
+    }
+
     try {
       const resp = await fetch('cms-data/shared.json', { cache: 'no-store' });
       if (resp.ok) {
@@ -231,7 +268,7 @@
     <div class="section-container nav-inner">
       <a href="index.html" class="nav-logo">
         <div class="logo-bg">
-          <img src="assets/Logo.gif" alt="Elsewedy SEDCO">
+          <img src="${data.logoSrc}" alt="Elsewedy SEDCO">
         </div>
       </a>
       <div class="nav-links">
@@ -280,7 +317,7 @@
         <div class="footer-brand">
           <a href="index.html" class="nav-logo" style="display:inline-block; text-decoration:none;">
             <div class="logo-bg">
-              <img src="assets/Logo.gif" alt="Elsewedy SEDCO">
+              <img src="${data.logoSrc}" alt="Elsewedy SEDCO">
             </div>
           </a>
           <p style="margin-top:12px;" data-cms-field="footer.brandText">${data.brandText}</p>
@@ -300,9 +337,9 @@
         <div class="footer-section footer-contact">
           <h4 data-cms-field="footer.contactHeading">${data.contactHeading}</h4>
           <ul>
-            <li><i data-lucide="map-pin" style="width:16px;height:16px;" data-cms-icon="footer.iconMapPin"></i><span data-cms-field="footer.address">${data.address}</span></li>
-            <li><i data-lucide="phone" style="width:16px;height:16px;" data-cms-icon="footer.iconPhone"></i><span data-cms-field="footer.phone">${data.phone}</span></li>
-            <li><i data-lucide="mail" style="width:16px;height:16px;" data-cms-icon="footer.iconMail"></i><span data-cms-field="footer.email">${data.email}</span></li>
+            <li><i data-lucide="${data.icon1}" style="width:16px;height:16px;" data-cms-icon="shared.footer.icon1"></i><span data-cms-field="footer.address">${data.address}</span></li>
+            <li><i data-lucide="${data.icon2}" style="width:16px;height:16px;" data-cms-icon="shared.footer.icon2"></i><span data-cms-field="footer.phone">${data.phone}</span></li>
+            <li><i data-lucide="${data.icon3}" style="width:16px;height:16px;" data-cms-icon="shared.footer.icon3"></i><span data-cms-field="footer.email">${data.email}</span></li>
           </ul>
         </div>
       </div>
