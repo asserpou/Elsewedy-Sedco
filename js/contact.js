@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
 
       const formData = new FormData(form);
-      const captchaToken = formData.get('cf-turnstile-response');
+      const captchaToken = formData.get('cf-turnstile-response') || (typeof turnstile !== 'undefined' ? turnstile.getResponse() : '');
       if (!captchaToken) {
           alert('Please complete the Captcha verification.');
           if (submitBtn) { submitBtn.disabled = false; submitBtn.style.opacity = "1"; }
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 4000);
 
       } catch (err) {
-        console.error("Supabase Error:", err.message);
+        // Silent error handling to prevent details leakage
         if (submitBtnText) submitBtnText.textContent = "Error, try again!";
         if (submitBtn) {
           submitBtn.disabled = false;

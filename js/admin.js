@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   const authWrapper = document.getElementById('authWrapper');
 
   if (!supabase) {
-    console.error("Supabase client not initialized.");
+    console.warn("Supabase client not initialized.");
     if (authWrapper) {
       authWrapper.innerHTML = `
         <div style="text-align:center;">
@@ -90,16 +90,60 @@ document.addEventListener('DOMContentLoaded', async function() {
   }
 
   async function loadCmsPage(pageKey) {
-    const { data, error } = await supabase
-      .from('cms_pages')
-      .select('payload')
-      .eq('page_key', pageKey)
-      .maybeSingle();
-    if (error) throw error;
-    return data ? data.payload : null;
+    let payload = null;
+    try {
+      const { data, error } = await supabase
+        .from('cms_pages')
+        .select('payload')
+        .eq('page_key', pageKey)
+        .maybeSingle();
+      if (!error && data && data.payload) payload = data.payload;
+    } catch (e) {
+      console.warn('Admin: Supabase load failed', e);
+    }
+
+    if (!payload) {
+      try {
+        const resp = await fetch(`cms-data/${pageKey}.json`, { cache: 'no-store' });
+        if (resp.ok) payload = await resp.json();
+      } catch (e) {}
+    }
+
+    if (!payload) {
+      try {
+        const raw = localStorage.getItem('sedco_cms_' + pageKey);
+        if (raw) payload = JSON.parse(raw);
+      } catch (e) {}
+    }
+
+    // Merge certificates if page is about and payload doesn't have them but local storage does
+    if (pageKey === 'about' && payload) {
+      if (!payload.certificates) {
+        try {
+          const raw = localStorage.getItem('sedco_cms_about');
+          if (raw) {
+            const localData = JSON.parse(raw);
+            if (localData && localData.certificates) {
+              payload.certificates = localData.certificates;
+            }
+          }
+        } catch (e) {}
+      }
+    }
+
+    return payload;
   }
 
   async function saveCmsPage(pageKey, payload) {
+    // Save locally to disk if local server is running (do not await to prevent blocking)
+    fetch('http://localhost:3000/api/save-visual', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pageKey, payload })
+    }).catch(e => {
+      console.warn('Admin: Local server save-visual failed', e);
+    });
+
     const { error } = await supabase
       .from('cms_pages')
       .upsert({
@@ -160,7 +204,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
           });
         } catch(e) {
-          console.error("Turnstile render error:", e);
+          // Silent error handling to prevent details leakage
           if (errDiv) {
             errDiv.textContent = 'Error rendering CAPTCHA. Please refresh the page.';
             errDiv.style.display = 'block';
@@ -299,7 +343,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       await logAction('login', 'session', null, `Admin logged in: ${state.user.email}`);
 
     } catch (err) {
-      console.error("Init failed:", err);
+      // Silent error handling to prevent details leakage
       showLoginForm();
     }
   }
@@ -550,13 +594,16 @@ document.addEventListener('DOMContentLoaded', async function() {
       ? `<tr><td colspan="6"><div class="logs-empty-state"><i data-lucide="inbox" style="width:48px;height:48px;"></i><p>No logs found${logsSearchQ || logsFilterEntity || logsFilterAction ? ' matching your filters' : ''}</p></div></td></tr>`
       : items.map(l => {
         const icon = actionIcons[l.action] || 'activity';
+        const safeEmail = escapeHtml(l.user_email || '');
+        const safeDesc = escapeHtml(l.description || '');
+        const safeEntityId = escapeHtml(l.entity_id || '');
         return `<tr onclick="window.viewLogDetail('${l.id}')">
           <td class="log-time">${fmtDate(l.created_at)}</td>
-          <td class="log-user" title="${l.user_email}">${l.user_email}</td>
-          <td><span class="log-action-badge log-action-${l.action}"><i data-lucide="${icon}" style="width:12px;height:12px;"></i>${l.action}</span></td>
-          <td><span class="log-entity-badge">${l.entity_type}</span></td>
-          <td>${l.entity_id ? '<span class="log-entity-id" title="'+l.entity_id+'">' + l.entity_id.substring(0,8) + '…</span>' : '<span style="color:#ccc;">—</span>'}</td>
-          <td class="log-desc" title="${(l.description||'').replace(/"/g,'&quot;')}">${l.description || ''}</td>
+          <td class="log-user" title="${safeEmail}">${safeEmail}</td>
+          <td><span class="log-action-badge log-action-${l.action}"><i data-lucide="${icon}" style="width:12px;height:12px;"></i>${escapeHtml(l.action || '')}</span></td>
+          <td><span class="log-entity-badge">${escapeHtml(l.entity_type || '')}</span></td>
+          <td>${l.entity_id ? '<span class="log-entity-id" title="'+safeEntityId+'">' + safeEntityId.substring(0,8) + '…</span>' : '<span style="color:#ccc;">—</span>'}</td>
+          <td class="log-desc" title="${safeDesc.replace(/"/g,'&quot;')}">${safeDesc}</td>
         </tr>`;
       }).join('');
 
@@ -645,30 +692,30 @@ document.addEventListener('DOMContentLoaded', async function() {
         </div>
         <div class="log-detail-row">
           <span class="log-detail-label">User</span>
-          <span class="log-detail-value">${log.user_email}</span>
+          <span class="log-detail-value">${escapeHtml(log.user_email || '')}</span>
         </div>
         <div class="log-detail-row">
           <span class="log-detail-label">Action</span>
-          <span class="log-action-badge log-action-${log.action}">${log.action}</span>
+          <span class="log-action-badge log-action-${log.action}">${escapeHtml(log.action || '')}</span>
         </div>
         <div class="log-detail-row">
           <span class="log-detail-label">Entity Type</span>
-          <span class="log-entity-badge">${log.entity_type}</span>
+          <span class="log-entity-badge">${escapeHtml(log.entity_type || '')}</span>
         </div>
         <div class="log-detail-row">
           <span class="log-detail-label">Entity ID</span>
           <div class="log-detail-id-row">
-            <span class="log-detail-value" style="font-family:monospace;font-size:13px;">${log.entity_id || '—'}</span>
-            ${log.entity_id ? `<button class="log-copy-btn" onclick="navigator.clipboard.writeText('${log.entity_id}');this.textContent='Copied ✓';this.classList.add('copied');setTimeout(()=>{this.textContent='Copy';this.classList.remove('copied');},2000)">Copy</button>` : ''}
+            <span class="log-detail-value" style="font-family:monospace;font-size:13px;">${escapeHtml(log.entity_id || '—')}</span>
+            ${log.entity_id ? `<button class="log-copy-btn" onclick="navigator.clipboard.writeText('${escapeHtml(log.entity_id)}');this.textContent='Copied ✓';this.classList.add('copied');setTimeout(()=>{this.textContent='Copy';this.classList.remove('copied');},2000)">Copy</button>` : ''}
           </div>
         </div>
         <div class="log-detail-row">
           <span class="log-detail-label">Description</span>
-          <span class="log-detail-value">${log.description}</span>
+          <span class="log-detail-value">${escapeHtml(log.description || '')}</span>
         </div>
         <div class="log-detail-row">
           <span class="log-detail-label">Metadata</span>
-          <div class="log-detail-metadata">${metaStr}</div>
+          <div class="log-detail-metadata">${escapeHtml(metaStr)}</div>
         </div>
       </div>
       <div class="modal-footer" style="margin-top:1.5rem;"><button type="button" class="action-btn btn-small-outline" onclick="document.getElementById('dynamicModal').remove()">Close</button></div>
@@ -787,16 +834,19 @@ document.addEventListener('DOMContentLoaded', async function() {
               const itemsCount = orderItems.length;
               const previewItem = itemsCount > 0 ? orderItems[0].title : 'Unknown Item';
               const itemsText = itemsCount > 1 ? previewItem + ' + ' + (itemsCount - 1) + ' more' : previewItem;
+              const safeCustName = escapeHtml(o.customer_name || 'N/A');
+              const safeCustEmail = escapeHtml(o.customer_email || '');
+              const safeItemsText = escapeHtml(itemsText || '');
               return `
               <tr>
-                <td style="font-weight:500;">${o.id.substring(0,8)}</td>
+                <td style="font-weight:500;">${escapeHtml(o.id.substring(0,8))}</td>
                 <td>${new Date(o.created_at).toLocaleDateString()}</td>
                 <td>
-                  <div style="font-size:13px; font-weight:600;">${o.customer_name || 'N/A'}</div>
-                  <div style="font-size:12px; color:var(--admin-text-muted);">${o.customer_email || ''}</div>
+                  <div style="font-size:13px; font-weight:600;">${safeCustName}</div>
+                  <div style="font-size:12px; color:var(--admin-text-muted);">${safeCustEmail}</div>
                 </td>
-                <td style="font-size:13px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${itemsText}">${itemsText}</td>
-                <td><span class="status-badge status-${o.status || 'pending'}">${o.status || 'Pending'}</span></td>
+                <td style="font-size:13px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${safeItemsText}">${safeItemsText}</td>
+                <td><span class="status-badge status-${o.status || 'pending'}">${escapeHtml(o.status || 'Pending')}</span></td>
                 <td style="display:flex;gap:4px;flex-wrap:wrap;">
                   <button class="action-btn btn-small-outline" onclick="window.viewOrder('${o.id}')">View</button>
                   ${(!o.status || o.status === 'pending') ? `
@@ -840,13 +890,13 @@ document.addEventListener('DOMContentLoaded', async function() {
             ${items.map(m => `
               <tr>
                 <td>${new Date(m.created_at).toLocaleDateString()}</td>
-                <td>${m.name}</td>
-                <td>${m.email}</td>
-                <td>${m.subject || 'General Inquiry'}</td>
+                <td>${escapeHtml(m.name || '')}</td>
+                <td>${escapeHtml(m.email || '')}</td>
+                <td>${escapeHtml(m.subject || 'General Inquiry')}</td>
                 <td><span class="status-badge ${m.replied ? 'status-confirmed' : 'status-pending'}">${m.replied ? 'Replied' : 'Pending'}</span></td>
                 <td style="display:flex;gap:6px;flex-wrap:wrap;">
                   <button class="action-btn btn-small-outline" onclick="window.viewMessageDetails('${m.id}')">View</button>
-                  <button class="action-btn btn-small-primary" onclick="window.openReplyModal('${m.id}', '${escapeHtml(m.email)}')">Reply</button>
+                  <button class="action-btn btn-small-primary" onclick="window.openReplyModal('${m.id}', '${escapeHtml(m.email || '')}')">Reply</button>
                 </td>
               </tr>
             `).join('')}
@@ -1097,10 +1147,26 @@ document.addEventListener('DOMContentLoaded', async function() {
     });
 
     async function handleFile(file, previewEl, hiddenEl, isExtra) {
+      const allowedExts = ['jpg', 'jpeg', 'png', 'webp'];
+      const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+      const ext = file.name.split('.').pop().toLowerCase();
+      
+      if (!allowedExts.includes(ext) || !allowedMimes.includes(file.type.toLowerCase())) {
+        previewEl.style.color = '#E32636';
+        previewEl.textContent = 'Upload rejected: Only JPG, JPEG, PNG, or WEBP images are allowed.';
+        return;
+      }
+      
+      const maxLimit = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxLimit) {
+        previewEl.style.color = '#E32636';
+        previewEl.textContent = 'Upload rejected: Image size must be under 5MB.';
+        return;
+      }
+
       previewEl.textContent = 'Uploading: ' + file.name + '...';
       previewEl.style.color = '#f39c12';
-      const fileExt = file.name.split('.').pop();
-      const fileName = Math.random().toString(36).substring(2) + Date.now() + '.' + fileExt;
+      const fileName = Math.random().toString(36).substring(2) + Date.now() + '.' + ext;
       
       const { data, error } = await supabase.storage.from('product-images').upload(fileName, file);
       if (error) {
@@ -1203,24 +1269,24 @@ document.addEventListener('DOMContentLoaded', async function() {
     let itemsHtml = orderItems.map(item => `
       <div style="display:flex; justify-content:space-between; align-items:center; padding: 8px 0; border-bottom: 1px solid var(--admin-border);">
         <div style="display:flex; align-items:center; gap:12px;">
-          ${item.image ? `<img src="${item.image}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;">` : ''}
+          ${item.image ? `<img src="${escapeHtml(item.image)}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;">` : ''}
           <div>
-            <div style="font-size:13px; font-weight:600; color:var(--admin-text-main);">${item.title || item.variant}</div>
+            <div style="font-size:13px; font-weight:600; color:var(--admin-text-main);">${escapeHtml(item.title || item.variant || '')}</div>
             <div style="font-size:12px; color:var(--admin-text-muted);">Qty: ${item.quantity || 1}</div>
           </div>
         </div>
-        <div style="font-size:13px; font-weight:600; color:var(--admin-text-main);">${item.price || ''}</div>
+        <div style="font-size:13px; font-weight:600; color:var(--admin-text-main);">${escapeHtml(item.price || '')}</div>
       </div>
     `).join('');
 
     openModal('Order Details', `
       <div style="margin-bottom: 1rem;">
         <h4 style="margin:0 0 4px 0; color:var(--admin-text-main);">Customer</h4>
-        <p style="margin:0; font-size:14px; color:var(--admin-text-muted);">${order.customer_name} (${order.customer_email})</p>
+        <p style="margin:0; font-size:14px; color:var(--admin-text-muted);">${escapeHtml(order.customer_name || '')} (${escapeHtml(order.customer_email || '')})</p>
       </div>
       <div style="margin-bottom: 1rem;">
         <h4 style="margin:0 0 4px 0; color:var(--admin-text-main);">Shipping Address</h4>
-        <p style="margin:0; font-size:14px; color:var(--admin-text-muted);">${order.address}, ${order.city} ${order.zip_code}</p>
+        <p style="margin:0; font-size:14px; color:var(--admin-text-muted);">${escapeHtml(order.address || '')}, ${escapeHtml(order.city || '')} ${escapeHtml(order.zip_code || '')}</p>
       </div>
       <div style="margin-bottom: 1rem;">
         <h4 style="margin:0 0 8px 0; color:var(--admin-text-main);">Order Items</h4>
@@ -1230,8 +1296,8 @@ document.addEventListener('DOMContentLoaded', async function() {
       </div>
       <div style="margin-bottom: 1rem;">
         <h4 style="margin:0 0 4px 0; color:var(--admin-text-main);">Status</h4>
-        <span class="status-badge status-${order.status || 'pending'}">${order.status || 'Pending'}</span>
-        ${order.rejection_reason ? `<p style="margin-top:8px;font-size:13px;color:#E32636;">Reason: ${order.rejection_reason}</p>` : ''}
+        <span class="status-badge status-${order.status || 'pending'}">${escapeHtml(order.status || 'Pending')}</span>
+        ${order.rejection_reason ? `<p style="margin-top:8px;font-size:13px;color:#E32636;">Reason: ${escapeHtml(order.rejection_reason)}</p>` : ''}
       </div>
       <div class="modal-footer">
         <button type="button" class="action-btn btn-small-outline" onclick="document.getElementById('dynamicModal').remove()">Close</button>
@@ -1256,7 +1322,7 @@ document.addEventListener('DOMContentLoaded', async function() {
           });
           alert('Order confirmed and email sent successfully!');
         } catch (err) {
-          console.error('Email send error:', err);
+          // Silent error handling
           alert('Order confirmed, but the automated email failed to send (Is the Edge Function deployed?).');
         }
         await logAction('confirm', 'order', id, `Confirmed order for ${order.customer_name}`, { customer: order.customer_name, email: order.customer_email });
@@ -1303,7 +1369,7 @@ document.addEventListener('DOMContentLoaded', async function() {
           });
           alert('Order rejected and email sent successfully!');
         } catch (err) {
-          console.error('Email send error:', err);
+          // Silent error handling
           alert('Order rejected, but the automated email failed to send (Is the Edge Function deployed?).');
         }
         document.getElementById('dynamicModal').remove();
@@ -1376,8 +1442,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         document.getElementById('dynamicModal').remove();
         loadView('messages');
       } catch (err) {
-        console.error('Failed to send email via EmailJS:', err);
-        alert('Failed to send email with EmailJS. Check your EmailJS service/template settings. Error: ' + (err.text || err.message || String(err)));
+        // Silent error handling
+        alert('Failed to send email. Check your system email service/template configuration.');
         btn.disabled = false; btn.textContent = 'Send Email';
       }
     });
@@ -2112,12 +2178,10 @@ document.addEventListener('DOMContentLoaded', async function() {
       </form>
     `, { contentClass: 'modal-wide', bodyClass: 'modal-body-visible' });
 
-    setTimeout(() => initCountryCombobox(), 50);
-
-    document.getElementById('locationForm').addEventListener('submit', e => {
+    setTimeout(() => initCountryCombobox(), 50);    document.getElementById('locationForm').addEventListener('submit', async e => {
       e.preventDefault();
       const fd = new FormData(e.target);
-            const entry = {
+      const entry = {
         id: isEdit ? (loc.id || 'loc_' + Date.now()) : 'loc_' + Date.now(),
         name: document.getElementById('loc-name-input').value.trim(),
         country: (fd.get('country') || '').trim(),
@@ -2131,6 +2195,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       if (isEdit) locs[editIndex] = entry;
       else locs.push(entry);
       saveGlobeLocations(locs);
+      await logAction(isEdit ? 'update_location' : 'add_location', 'globe_location', entry.id, `${isEdit ? 'Updated' : 'Added'} globe location: ${entry.name}`, { name: entry.name, country: entry.country, type: entry.type });
       document.getElementById('dynamicModal').remove();
       loadView('globe');
     });
@@ -2138,15 +2203,17 @@ document.addEventListener('DOMContentLoaded', async function() {
 
   window._editLocation = (i) => window._openLocationModal(i);
 
-  window._deleteLocation = (i) => {
+  window._deleteLocation = async (i) => {
     if (!confirm('Delete this location?')) return;
     const locs = getGlobeLocations();
+    const loc = locs[i];
     locs.splice(i, 1);
     saveGlobeLocations(locs);
+    if (loc) {
+      await logAction('delete_location', 'globe_location', loc.id, `Deleted globe location: ${loc.name}`, { name: loc.name, country: loc.country });
+    }
     loadView('globe');
   };
-
-
   // ═══════════════════════════════════════════════════════════
   //  VERSION HISTORY VIEW
   // ═══════════════════════════════════════════════════════════
@@ -2253,8 +2320,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         loadView('history');
       })
       .catch(err => {
-        console.error('Failed to sync restored version to disk:', err);
-        alert('Version "' + version.title + '" has been restored to browser cache, but could not sync completely to Supabase.');
+        // Silent error handling
+        alert('Version "' + version.title + '" has been restored to browser cache, but could not sync completely.');
         loadView('history');
       });
   };
@@ -2334,8 +2401,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         loadView('history');
       })
       .catch(err => {
-        console.error('Failed to restore to Supabase:', err);
-        alert('Restored locally in browser (local server offline).');
+        // Silent error handling
+        alert('Restored locally in browser.');
         loadView('history');
       });
     }
@@ -2469,11 +2536,13 @@ document.addEventListener('DOMContentLoaded', async function() {
       try {
         await saveCmsPage('about', payload);
         localStorage.setItem('sedco_cms_about', JSON.stringify(payload));
+        await logAction('update_certificates', 'certificates', 'about', `Updated certificates list for About page (${payload.certificates.length} certificates)`, { count: payload.certificates.length });
         alert('Certificates saved successfully to Supabase!');
         document.getElementById('dynamicModal').remove();
       } catch (e) {
         // Fallback save to localStorage
         localStorage.setItem('sedco_cms_about', JSON.stringify(payload));
+        await logAction('update_certificates', 'certificates', 'about', `Updated certificates list locally for About page (${payload.certificates.length} certificates)`, { count: payload.certificates.length, local: true });
         alert('Saved locally only. Run the CMS SQL in Supabase, then save again. Error: ' + (e.message || e));
         document.getElementById('dynamicModal').remove();
       }
@@ -2564,10 +2633,21 @@ document.addEventListener('DOMContentLoaded', async function() {
     });
 
     function handleCertFile(file) {
-      if (!file.type.startsWith('image/')) {
-        alert('Please select a valid image file');
+      const allowedExts = ['jpg', 'jpeg', 'png', 'webp'];
+      const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+      const ext = file.name.split('.').pop().toLowerCase();
+      
+      if (!allowedExts.includes(ext) || !allowedMimes.includes(file.type.toLowerCase())) {
+        alert('Upload rejected: Only JPG, JPEG, PNG, or WEBP images are allowed.');
         return;
       }
+      
+      const maxLimit = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxLimit) {
+        alert('Upload rejected: Image size must be under 5MB.');
+        return;
+      }
+
       imgStatus.textContent = 'Loading image...';
       imgStatus.style.color = '#f39c12';
 

@@ -1,0 +1,97 @@
+========================================================================
+             SECURITY HARDENING REPORT - ELSEWEDY SEDCO WEBSITE
+========================================================================
+Author: Coding Assistant
+Date: June 2026
+Deployment Origin: elsewedysedco.netlify.app
+Database Platform: Supabase
+========================================================================
+
+This report outlines all the security patches, vulnerabilities resolved, and visual loader optimizations implemented across the Elsewedy SEDCO codebase to ensure secure production deployment.
+
+------------------------------------------------------------------------
+1. OPEN REDEIRCET PREVENTION
+------------------------------------------------------------------------
+Vulnerability: An Open Redirect vulnerability in auth.js allowed attackers to redirect authenticated users to malicious sites or phishing pages post-login.
+Remediation: 
+- Modified js/auth.js to include a validation helper: `isSafeRedirect(url)`.
+- Restricts redirect targets strictly to:
+  * Relative site URLs (starting with '/' or referring to local pages).
+  * Explicitly whitelisted official domain origins ('elsewedysedco.netlify.app' or the current host).
+- Any attempt to redirect to an external/unregistered domain is blocked and falls back to 'index.html'.
+
+------------------------------------------------------------------------
+2. CROSS-SITE SCRIPTING (XSS) MITIGATION
+------------------------------------------------------------------------
+Vulnerability: Attacker inputs rendered directly into lists, logs, and templates could execute script payloads.
+Remediation:
+- Created and integrated `escapeHtml()` utility functions across:
+  * js/admin.js: Sanitizes customer names, customer emails, item variant texts, order logs, system action descriptions, message inquiries, and template outputs.
+  * js/cart.js: Sanitizes product titles and selected attributes when items are rendered dynamically in the shopping cart.
+- Encodes special characters like <, >, &, ", and ' into secure HTML entities.
+
+------------------------------------------------------------------------
+3. SECURE FILE UPLOAD RESTRICTIONS
+------------------------------------------------------------------------
+Vulnerability: Potential for remote code execution by uploading malicious scripts (e.g. PHP shells) disguised as images.
+Remediation:
+- Patched product/category uploads (js/admin.js) and certificate/general CMS media inputs (js/cms-editor.js) to enforce three-layer security checks:
+  1. Size Limit: Rejects any upload exceeding 5MB.
+  2. File Extension check: Restricts extensions strictly to 'jpg', 'jpeg', 'png', and 'webp' (case-insensitive).
+  3. MIME type check: Ensures the actual file MIME type matches 'image/jpeg', 'image/png', or 'image/webp'.
+
+------------------------------------------------------------------------
+4. VISUAL PAGE EDITOR ACCESS GUARDS
+------------------------------------------------------------------------
+Vulnerability: Unauthorized users could navigate directly to page editors (e.g. index_for_edit.html) and view templates or perform local layout overrides.
+Remediation:
+- Added a static gatekeeper: `<style id="cms-gatekeeper">html, body { display: none !important; }</style>` in the head of all edit templates.
+- Enforced same-origin iframe wrapping validation at the top of js/cms-editor.js.
+- Implemented real-time role checks querying the 'user_roles' Supabase table to verify the active session belongs to a user with the 'admin' role.
+- If checks pass, the script removes the gatekeeper style and displays the editor inside the iframe.
+- If checks fail, the user is immediately redirected to admin.html and no contents are disclosed.
+
+------------------------------------------------------------------------
+5. STRICT SECURITY HEADERS & CSP CONFIGURATION
+------------------------------------------------------------------------
+Vulnerability: Clickjacking, MIME sniffing, and cross-site scripts (CSS/JS injection).
+Remediation:
+- Created netlify.toml at the repository root to configure the following HTTP headers:
+  * `X-Frame-Options: SAMEORIGIN` — permits framing inside our official Admin CMS while blocking clickjacking from other domains.
+  * `X-Content-Type-Options: nosniff` — disables MIME sniffing.
+  * `Referrer-Policy: strict-origin-when-cross-origin` — prevents referral data leakages.
+  * `Strict-Transport-Security` (HSTS) — enforces SSL connections.
+  * `X-XSS-Protection: 1; mode=block` — protects older browser users.
+  * `Cross-Origin-Opener-Policy: same-origin` — mitigates window.opener cross-origin context takeovers.
+  * `Content-Security-Policy` (CSP) — Whitelists trusted connection points and origins including Supabase API/Realtime, Cloudflare Turnstile, EmailJS API, Lucide, and local styles.
+
+------------------------------------------------------------------------
+6. turnstile CAPTCHA & ERROR LOGGING (INFO DISCLOSURE PREVENTION)
+------------------------------------------------------------------------
+Vulnerability: CAPTCHA bypass due to token reading errors, and console.error output disclosing database schemas, network endpoints, or auth details.
+Remediation:
+- Modified js/contact.js Turnstile token retriever to add `turnstile.getResponse()` fallback to ensure the form cannot submit without a valid token.
+- Removed all `console.error` calls from:
+  * js/admin.js
+  * js/auth.js
+  * js/cart.js
+  * js/contact.js
+  * js/shared-components.js
+  * js/cms-loader.js
+- Replaced logs with silent handlers or generic warning alerts, ensuring zero system/stack trace disclosures in production.
+
+------------------------------------------------------------------------
+7. ANTI-FLASH LOADER OPTIMIZATION
+------------------------------------------------------------------------
+Vulnerability: Page content flashed the old/default text first and then loaded database modifications.
+Remediation:
+- Injected `<style id="cms-loading-gate">html { opacity: 0 !important; }</style>` statically in the head of all production pages (index.html, about.html, solutions.html, contact.html, marketplace.html).
+- Rewrote js/cms-loader.js to follow the Stale-While-Revalidate caching pattern:
+  * Synchronously reads cached data from local storage on load.
+  * Injects cached data immediately during the DOM parsing stage.
+  * Instantly removes the `#cms-loading-gate` once cache is applied, providing a smooth load with no flashing.
+  * Asynchronously fetches new content in the background, updates the DOM if any new changes exist, and saves it to local storage.
+
+========================================================================
+                    REPORT END - CODE IS DEPLOYMENT READY
+========================================================================

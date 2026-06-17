@@ -16,6 +16,19 @@
   const SUPABASE_ANON_KEY = 'sb_publishable_llEtCRU2fkmNycPY4HwJ5w_XqnkQFQf';
   const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
+  function adjustLink(url) {
+    if (!url) return '';
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (!isLocal) return url;
+    if (!url.includes(':') && !url.startsWith('#') && !url.includes('.')) {
+      const cleaned = url.startsWith('/') ? url.substring(1) : url;
+      if (['about', 'solutions', 'contact', 'marketplace', 'index', 'admin'].includes(cleaned)) {
+        return cleaned + '.html';
+      }
+    }
+    return url;
+  }
+
   /* ─── Default shared data ─── */
   const DEFAULTS = {
     navbar: {
@@ -257,11 +270,11 @@
   function renderNavbar(data) {
     const active = getActivePage();
     const linksHtml = data.links.map((l, i) =>
-      `<a href="${l.href}" ${l.href === active ? 'class="active"' : ''} data-cms-link="nav.link${i+1}">${l.text}<span class="underline"></span></a>`
+      `<a href="${adjustLink(l.href)}" ${l.href === active ? 'class="active"' : ''} data-cms-link="nav.link${i+1}">${l.text}<span class="underline"></span></a>`
     ).join('\n        ');
 
     const mobileLinksHtml = data.links.map((l, i) =>
-      `<a href="${l.href}" data-cms-link="mob.nav.link${i+1}">${l.text}</a>`
+      `<a href="${adjustLink(l.href)}" data-cms-link="mob.nav.link${i+1}">${l.text}</a>`
     ).join('\n      ');
 
     return `<nav class="navbar">
@@ -273,7 +286,7 @@
       </a>
       <div class="nav-links">
         ${linksHtml}
-        <a href="${data.ctaHref}" class="nav-cta ${active === 'contact.html' ? 'active' : ''}" data-cms-btn="nav.cta">${data.ctaText}</a>
+        <a href="${adjustLink(data.ctaHref)}" class="nav-cta ${active === 'contact.html' ? 'active' : ''}" data-cms-btn="nav.cta">${data.ctaText}</a>
       </div>
       <button class="mobile-toggle" aria-label="Toggle menu">
         <span></span><span></span><span></span>
@@ -281,7 +294,7 @@
     </div>
     <div class="mobile-menu section-container">
       ${mobileLinksHtml}
-      <a href="${data.ctaHref}" class="mobile-cta" data-cms-btn="mob.nav.cta">${data.ctaText}</a>
+      <a href="${adjustLink(data.ctaHref)}" class="mobile-cta" data-cms-btn="mob.nav.cta">${data.ctaText}</a>
     </div>
   </nav>`;
   }
@@ -292,8 +305,8 @@
         <h2 data-cms-field="shared.cta.title">${data.title}</h2>
         <p data-cms-field="shared.cta.text">${data.text}</p>
         <div class="footer-cta-buttons">
-          <a href="${data.btn1Href}" class="btn-primary footer-btn" data-cms-btn="shared.cta.btn1"${buttonStyle(data.btn1Bg, data.btn1Color)}>${data.btn1Text} <i data-lucide="arrow-right" style="width:16px;height:16px;"></i></a>
-          <a href="${data.btn2Href}" class="btn-outline" data-cms-btn="shared.cta.btn2"${buttonStyle(data.btn2Bg, data.btn2Color, 'border-color:rgba(255,255,255,0.15)')}>${data.btn2Text}</a>
+          <a href="${adjustLink(data.btn1Href)}" class="btn-primary footer-btn" data-cms-btn="shared.cta.btn1"${buttonStyle(data.btn1Bg, data.btn1Color)}>${data.btn1Text} <i data-lucide="arrow-right" style="width:16px;height:16px;"></i></a>
+          <a href="${adjustLink(data.btn2Href)}" class="btn-outline" data-cms-btn="shared.cta.btn2"${buttonStyle(data.btn2Bg, data.btn2Color, 'border-color:rgba(255,255,255,0.15)')}>${data.btn2Text}</a>
         </div>
       </div>`;
   }
@@ -301,11 +314,11 @@
   /* ─── Generate Footer HTML ─── */
   function renderFooter(data, ctaData) {
     const serviceLinksHtml = data.serviceLinks.map((l, i) =>
-      `<li><a href="${l.href}" data-cms-link="footer.link${i+1}">${l.text}</a></li>`
+      `<li><a href="${adjustLink(l.href)}" data-cms-link="footer.link${i+1}">${l.text}</a></li>`
     ).join('\n            ');
 
     const companyLinksHtml = data.companyLinks.map((l, i) =>
-      `<li><a href="${l.href}" data-cms-link="footer.link${i+5}">${l.text}</a></li>`
+      `<li><a href="${adjustLink(l.href)}" data-cms-link="footer.link${i+5}">${l.text}</a></li>`
     ).join('\n            ');
 
     return `<footer class="site-footer" id="shared-footer">
@@ -346,8 +359,8 @@
       <div class="footer-bottom">
         <p data-cms-field="footer.copyright">${data.copyright}</p>
         <div class="footer-bottom-links">
-          <a href="${data.privacyHref}" data-cms-link="footer.privacy">${data.privacyText}</a>
-          <a href="${data.termsHref}" data-cms-link="footer.terms">${data.termsText}</a>
+          <a href="${adjustLink(data.privacyHref)}" data-cms-link="footer.privacy">${data.privacyText}</a>
+          <a href="${adjustLink(data.termsHref)}" data-cms-link="footer.terms">${data.termsText}</a>
         </div>
       </div>
     </div>
@@ -377,10 +390,10 @@
   /* Run on DOM ready */
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-      inject().catch(err => console.error("Shared components inject error:", err));
+      inject().catch(() => {});
     });
   } else {
-    inject().catch(err => console.error("Shared components inject error:", err));
+    inject().catch(() => {});
   }
 
   /* Expose for external use */

@@ -75,10 +75,29 @@ document.addEventListener('DOMContentLoaded', async function() {
             loggedInEmail.textContent = session.user.email;
             
             // Check redirect
+            function isSafeRedirect(url) {
+                if (!url) return false;
+                if (url.startsWith('//')) return false;
+                if (url.startsWith('/') || /^[a-zA-Z0-9_.-]+\.html/.test(url)) {
+                    if (!url.includes(':') && !url.includes('\\')) {
+                        return true;
+                    }
+                }
+                try {
+                    const parsed = new URL(url, window.location.origin);
+                    return parsed.hostname === window.location.hostname || parsed.hostname === 'elsewedysedco.netlify.app';
+                } catch (e) {
+                    return false;
+                }
+            }
+
             const urlParams = new URLSearchParams(window.location.search);
             const redirect = urlParams.get('redirect');
-            if (redirect) {
+            if (redirect && isSafeRedirect(redirect)) {
                 window.location.href = redirect;
+            } else if (redirect) {
+                console.warn('Blocked open redirect to:', redirect);
+                window.location.href = 'index.html';
             }
         }
     }

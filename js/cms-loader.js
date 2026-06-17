@@ -29,6 +29,29 @@
   const SUPABASE_ANON_KEY = 'sb_publishable_llEtCRU2fkmNycPY4HwJ5w_XqnkQFQf';
   const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
+  // 1. Get cached data synchronously
+  let cachedData = null;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const d = JSON.parse(raw);
+      if (d && d._editor) cachedData = d;
+    }
+  } catch (e) {}
+
+  function adjustLink(url) {
+    if (!url) return '';
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (!isLocal) return url;
+    if (!url.includes(':') && !url.startsWith('#') && !url.includes('.')) {
+      const cleaned = url.startsWith('/') ? url.substring(1) : url;
+      if (['about', 'solutions', 'contact', 'marketplace', 'index', 'admin'].includes(cleaned)) {
+        return cleaned + '.html';
+      }
+    }
+    return url;
+  }
+
   function getButtonTextContainer(el) {
     return Array.from(el.children).find(child => {
       if (!['SPAN', 'LABEL', 'DIV'].includes(child.tagName)) return false;
@@ -58,58 +81,26 @@
     }
   }
 
-  async function loadData() {
-    if (supabaseClient) {
-      try {
-        const { data, error } = await supabaseClient
-          .from('cms_pages')
-          .select('payload')
-          .eq('page_key', pageKey)
-          .maybeSingle();
-        if (!error && data && data.payload && data.payload._editor) return data.payload;
-        if (error) console.warn('CMS Loader: Supabase load failed, trying legacy JSON', error);
-      } catch (e) {
-        console.warn('CMS Loader: Supabase load failed, trying legacy JSON', e);
-      }
+  function revealPage() {
+    const gate = document.getElementById('cms-loading-gate');
+    if (gate && gate.parentNode) {
+      gate.parentNode.removeChild(gate);
     }
-
-    try {
-      const resp = await fetch(`cms-data/${pageKey}.json`, { cache: 'no-store' });
-      if (resp.ok) {
-        const d = await resp.json();
-        return (d && d._editor) ? d : null;
-      }
-    } catch (e) {
-      console.warn('CMS Loader: Could not load saved data from server, trying localStorage', e);
-    }
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return null;
-      const d = JSON.parse(raw);
-      return (d && d._editor) ? d : null;
-    } catch (e) { return null; }
   }
 
-  async function apply() {
-    const data = await loadData();
+  function applyData(data) {
     if (!data) return;
     window.CMS_LOADED_DATA = data;
 
     /* ── Text fields ── */
     if (data.fields) {
       Object.keys(data.fields).forEach(key => {
-        /* Match by data-cms-field attribute (same as editor pages) */
         const el = document.querySelector('[data-cms-field="' + key + '"]');
         if (el) el.innerHTML = data.fields[key];
       });
     }
 
-    /* ── Buttons ──
-       The saved button data contains:
-         text: the text-node-only content (no icon text)
-         bg, color: inline style colors
-         _iconFirst: whether the icon was before the text
-    */
+    /* ── Buttons ── */
     if (data.buttons) {
       Object.keys(data.buttons).forEach(key => {
         const el = document.querySelector('[data-cms-btn="' + key + '"]');
@@ -130,7 +121,7 @@
         if (!el) return;
         const l = data.links[key];
         if (l.text) { const u = el.querySelector('.underline'); el.textContent = l.text; if (u) el.appendChild(u); }
-        if (l.href) el.href = l.href;
+        if (l.href) el.href = adjustLink(l.href);
       });
     }
 
@@ -143,21 +134,14 @@
       });
     }
 
-    /* ── Icons ──
-       The editor saves icons keyed by data-cms-icon attribute values.
-       On production pages, icons use <i data-lucide="X"> without data-cms-icon.
-       On editor pages, <i data-cms-icon="key"> gets moved to parent as data-cms-icon-key.
-       We try both selectors for maximum compatibility.
-    */
+    /* ── Icons ── */
     if (data.icons) {
       Object.keys(data.icons).forEach(key => {
-        /* Try data-cms-icon first (production pages with the attribute) */
         let el = document.querySelector('[data-cms-icon="' + key + '"]');
         if (el) {
           el.setAttribute('data-lucide', data.icons[key]);
           return;
         }
-        /* Try data-cms-icon-key (parent container, editor-style) */
         let container = document.querySelector('[data-cms-icon-key="' + key + '"]');
         if (container) {
           const oldSvg = container.querySelector('svg');
@@ -181,18 +165,11 @@
       });
     }
 
-    /* ── Cards (home page) ──
-       CRITICAL FIX: Only replace the grid if the cards array has actually
-       been modified (different length or content from default).
-       When replacing, generate COMPLETE card HTML with data-cms-field
-       attributes so text edits from the saved fields can be applied.
-    */
+    /* ── Cards (home page) ── */
     if (data.cards && Array.isArray(data.cards) && pageKey === 'home') {
       const grid = document.querySelector('.categories-grid');
       if (grid) {
-        /* Build new card HTML — always reflect the full saved array */
         grid.innerHTML = data.cards.map((c, i) => {
-          /* Use title/desc from the cards array (already has DOM edits synced by editor) */
           const title = c.title || '';
           const desc = c.desc || '';
           const img = c.img || 'assets/images/solution-turnkey.png';
@@ -211,7 +188,6 @@
           '</div>';
         }).join('');
 
-        /* Now apply any per-card field overrides from data.fields */
         if (data.fields) {
           Object.keys(data.fields).forEach(key => {
             if (key.startsWith('cat.')) {
@@ -220,10 +196,10 @@
             }
           });
         }
-
         try { setTimeout(() => { if (window.lucide) lucide.createIcons(); }, 150); } catch(e) {}
       }
     }
+
     /* ── Marketplace cards ── */
     if (data.cards && Array.isArray(data.cards) && pageKey === 'marketplace') {
       const grid = document.querySelector('.products-grid');
@@ -272,19 +248,70 @@
         }).join('\n');
       }
     }
-
-    console.log('CMS: Applied "' + pageKey + '" data');
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  async function loadDataAndSync() {
+    let freshData = null;
+    if (supabaseClient) {
+      try {
+        const { data, error } = await supabaseClient
+          .from('cms_pages')
+          .select('payload')
+          .eq('page_key', pageKey)
+          .maybeSingle();
+        if (!error && data && data.payload && data.payload._editor) freshData = data.payload;
+      } catch (e) {}
+    }
+
+    if (!freshData) {
+      try {
+        const resp = await fetch(`cms-data/${pageKey}.json`, { cache: 'no-store' });
+        if (resp.ok) {
+          const d = await resp.json();
+          if (d && d._editor) freshData = d;
+        }
+      } catch (e) {}
+    }
+
+    if (freshData) {
+      // Apply the fresh data to update UI if anything changed
+      applyData(freshData);
+      // Cache it for the next instant load
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(freshData));
+      } catch (e) {}
+    }
+    
+    // Always guarantee page is visible
+    revealPage();
+  }
+
+  function handleDOMReady() {
+    // 1. If we have cached data, apply it immediately to prevent flashes
+    if (cachedData) {
+      applyData(cachedData);
+      revealPage();
+    } else {
+      // Short fallback: if there is no cache, wait a tiny bit or reveal
+      setTimeout(revealPage, 500);
+    }
+
+    // 2. Fetch fresh content in background, update DOM dynamically, and update cache
     const hasNavbar = document.getElementById('shared-navbar');
     const hasFooter = document.getElementById('shared-footer');
     if ((hasNavbar || hasFooter) && !window.SHARED_COMPONENTS_INJECTED) {
       document.addEventListener('shared-components-injected', () => {
-        apply().catch(err => console.error("CMS Loader apply error:", err));
+        loadDataAndSync().catch(() => {});
       });
     } else {
-      apply().catch(err => console.error("CMS Loader apply error:", err));
+      loadDataAndSync().catch(() => {});
     }
-  });
+  }
+
+  /* Run on DOM ready */
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', handleDOMReady);
+  } else {
+    handleDOMReady();
+  }
 })();

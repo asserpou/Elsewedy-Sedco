@@ -4,6 +4,13 @@
 (function () {
   'use strict';
 
+  // Immediately hide the page content to prevent info disclosure
+  const hideStyle = document.createElement('style');
+  hideStyle.innerHTML = 'html, body { display: none !important; }';
+  document.documentElement.appendChild(hideStyle);
+
+  const staticGatekeeper = document.getElementById('cms-gatekeeper');
+
   /* CONFIG — each page sets window.CMS_PAGE_KEY before loading this script */
   const PAGE_KEY = window.CMS_PAGE_KEY || 'home';
   const PAGE_NAME = window.CMS_PAGE_NAME || PAGE_KEY;
@@ -12,6 +19,75 @@
   const SUPABASE_URL = 'https://nnwcwqasmdpbvotfepvy.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_llEtCRU2fkmNycPY4HwJ5w_XqnkQFQf';
   const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+  async function checkAccess() {
+    // 1. Frame check
+    if (window.self === window.top) {
+      window.location.replace('admin.html');
+      return;
+    }
+    try {
+      if (window.parent.location.origin !== window.location.origin) {
+        window.location.replace('admin.html');
+        return;
+      }
+    } catch (e) {
+      window.location.replace('admin.html');
+      return;
+    }
+
+    // 2. Auth & Admin Role Check
+    if (!supabaseClient) {
+      window.location.replace('admin.html');
+      return;
+    }
+
+    try {
+      const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+      if (sessionError || !session || !session.user) {
+        window.location.replace('admin.html');
+        return;
+      }
+
+      const { data: roleData, error: roleError } = await supabaseClient
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
+        .maybeSingle();
+
+      if (roleError || !roleData || roleData.role !== 'admin') {
+        window.location.replace('admin.html');
+        return;
+      }
+
+      // If all checks pass, show the page content
+      if (hideStyle.parentNode) hideStyle.parentNode.removeChild(hideStyle);
+      if (staticGatekeeper && staticGatekeeper.parentNode) {
+        staticGatekeeper.parentNode.removeChild(staticGatekeeper);
+      }
+    } catch (e) {
+      window.location.replace('admin.html');
+    }
+  }
+
+  checkAccess();
+
+  async function logAction(action, entityType, entityId, description, metadata = {}) {
+    if (!supabaseClient) return;
+    try {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session || !session.user) return;
+      await supabaseClient.from('admin_logs').insert([{
+        user_id: session.user.id,
+        user_email: session.user.email,
+        action,
+        entity_type: entityType,
+        entity_id: entityId || null,
+        description,
+        metadata
+      }]);
+    } catch (e) { console.warn('CMS Editor: Log failed:', e); }
+  }
 
   /* DOM refs */
   const fileInput = document.getElementById('cms-file-input');
@@ -27,8 +103,10 @@
   let selectedIconName = '';
   let imageDataMap = {};
   let iconDataMap = {};
+  let certificatesData = [];
 
   async function loadCmsPage(pageKey) {
+    let payload = null;
     if (supabaseClient) {
       try {
         const { data, error } = await supabaseClient
@@ -36,29 +114,59 @@
           .select('payload')
           .eq('page_key', pageKey)
           .maybeSingle();
-        if (!error && data && data.payload) return data.payload;
+        if (!error && data && data.payload) payload = data.payload;
         if (error) console.warn('CMS Editor: Supabase load failed, trying legacy storage', error);
       } catch (e) {
         console.warn('CMS Editor: Supabase load failed, trying legacy storage', e);
       }
     }
 
-    try {
-      const resp = await fetch(`cms-data/${pageKey}.json`, { cache: 'no-store' });
-      if (resp.ok) return await resp.json();
-    } catch (e) {
-      console.warn('CMS Editor: Could not load legacy JSON, trying localStorage', e);
+    if (!payload) {
+      try {
+        const resp = await fetch(`cms-data/${pageKey}.json`, { cache: 'no-store' });
+        if (resp.ok) payload = await resp.json();
+      } catch (e) {
+        console.warn('CMS Editor: Could not load legacy JSON, trying localStorage', e);
+      }
     }
 
-    try {
-      const raw = localStorage.getItem('sedco_cms_' + pageKey);
-      return raw ? JSON.parse(raw) : null;
-    } catch (e) {
-      return null;
+    if (!payload) {
+      try {
+        const raw = localStorage.getItem('sedco_cms_' + pageKey);
+        if (raw) payload = JSON.parse(raw);
+      } catch (e) {
+        // ignore
+      }
     }
+
+    // Merge certificates if page is about and payload doesn't have them but local storage does
+    if (pageKey === 'about' && payload) {
+      if (!payload.certificates) {
+        try {
+          const raw = localStorage.getItem('sedco_cms_about');
+          if (raw) {
+            const localData = JSON.parse(raw);
+            if (localData && localData.certificates) {
+              payload.certificates = localData.certificates;
+            }
+          }
+        } catch (e) {}
+      }
+    }
+
+    return payload;
   }
 
   async function saveCmsPage(pageKey, payload) {
+    // Save locally to disk if local server is running (do not await to prevent blocking)
+    fetch('http://localhost:3000/api/save-visual', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pageKey, payload })
+    }).catch(e => {
+      console.warn('CMS Editor: Local server save-visual failed', e);
+    });
+
     if (!supabaseClient) throw new Error('Supabase client is not available.');
     const { error } = await supabaseClient
       .from('cms_pages')
@@ -292,6 +400,7 @@
       }
 
       if (data.certificates && Array.isArray(data.certificates) && PAGE_KEY === 'about') {
+        certificatesData = data.certificates;
         const container = document.getElementById('about-certs-container');
         if (container) {
           container.innerHTML = data.certificates.map((c, i) => {
@@ -360,15 +469,22 @@
 
     const icons = (typeof iconDataMap !== 'undefined') ? { ...iconDataMap } : {};
     const payload = { _editor: true, fields, buttons, links, images: imageDataMap, icons, styles, cards: CARDS, lastSaved: new Date().toISOString() };
+    if (PAGE_KEY === 'about') {
+      payload.certificates = certificatesData;
+    }
 
     // Send payload to Supabase so production visitors see the edited content.
     saveCmsPage(PAGE_KEY, payload)
-    .then(() => ({ success: true }))
+    .then(() => {
+      logAction('edit_page', 'cms_page', PAGE_KEY, `Updated visual editor layout for ${PAGE_NAME} page`, { page_key: PAGE_KEY });
+      return { success: true };
+    })
     .then(serverResult => {
       showToast('All changes saved to server!', 'success');
       if (saveStatus) { saveStatus.textContent = 'Saved ✓'; setTimeout(() => { saveStatus.textContent = 'Ready'; }, 3000); }
     })
     .catch(err => {
+      logAction('edit_page_local', 'cms_page', PAGE_KEY, `Updated visual editor layout locally for ${PAGE_NAME} page (Supabase offline)`, { page_key: PAGE_KEY, error: err.message || err });
       console.warn('CMS Editor: Supabase save failed, saving to localStorage:', err);
       showToast('Saved locally only. Run the CMS SQL in Supabase.', 'warning');
       if (saveStatus) { saveStatus.textContent = 'Server save failed'; setTimeout(() => { saveStatus.textContent = 'Ready'; }, 3000); }
@@ -687,8 +803,17 @@
     fileInput.addEventListener('change', e => {
       const file = e.target.files[0];
       if (!file || !currentImageKey) return;
-      if (!file.type.startsWith('image/')) { showToast('Please select a valid image file', 'error'); return; }
-      if (file.size > 8 * 1024 * 1024) { showToast('Image must be under 8MB', 'error'); return; }
+      const allowedExts = ['jpg', 'jpeg', 'png', 'webp'];
+      const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+      const ext = file.name.split('.').pop().toLowerCase();
+      if (!allowedExts.includes(ext) || !allowedMimes.includes(file.type.toLowerCase())) {
+        showToast('Please select a valid image file (JPG, JPEG, PNG, or WEBP)', 'error');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('Image size must be under 5MB', 'error');
+        return;
+      }
       const reader = new FileReader();
       reader.onload = ev => {
         const base64 = ev.target.result;
@@ -834,7 +959,17 @@
       acmImgFile.addEventListener('change', e => {
         const file = e.target.files[0];
         if (!file) return;
-        if (!file.type.startsWith('image/')) { showToast('Please select a valid image', 'error'); return; }
+        const allowedExts = ['jpg', 'jpeg', 'png', 'webp'];
+        const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (!allowedExts.includes(ext) || !allowedMimes.includes(file.type.toLowerCase())) {
+          showToast('Please select a valid image (JPG, JPEG, PNG, or WEBP)', 'error');
+          return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          showToast('Image size must be under 5MB', 'error');
+          return;
+        }
         const reader = new FileReader();
         reader.onload = ev => {
           newCardImage = ev.target.result;

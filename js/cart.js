@@ -95,16 +95,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderCart() {
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, ch => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[ch]));
+        }
+
         cartItemsContainer.innerHTML = '';
         if (cart.length === 0) return;
         cart.forEach((item, index) => {
             const div = document.createElement('div');
             div.className = 'bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex gap-4 items-center mb-3';
             div.innerHTML = `
-                <img src="${item.image}" alt="${item.title}" class="w-16 h-16 object-cover rounded-lg border border-gray-100">
+                <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" class="w-16 h-16 object-cover rounded-lg border border-gray-100">
                 <div class="flex-1">
-                    <h4 class="font-bold text-[#1a1a1a] text-sm leading-tight">${item.title}</h4>
-                    <p class="text-xs text-[#666666]">${item.variant || 'Standard'}</p>
+                    <h4 class="font-bold text-[#1a1a1a] text-sm leading-tight">${escapeHtml(item.title)}</h4>
+                    <p class="text-xs text-[#666666]">${escapeHtml(item.variant || 'Standard')}</p>
                 </div>
                 <div class="flex items-center gap-3">
                     <button class="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-[#1a1a1a] transition-colors font-bold" onclick="updateQty(${index}, -1)">-</button>
@@ -198,9 +208,9 @@ document.addEventListener('DOMContentLoaded', () => {
             saveCart();
             setTimeout(() => closeCartBtn.click(), 2500);
         } catch (err) {
-            console.error(err);
+            // Silent error handling
             checkoutErrorMsg.className = 'text-[#E32636] text-sm font-bold text-center mb-2';
-            checkoutErrorMsg.textContent = err.message || 'Error placing order.';
+            checkoutErrorMsg.textContent = 'Error placing order. Please try again later.';
         } finally {
             setTimeout(() => {
                 placeOrderBtn.disabled = false;
